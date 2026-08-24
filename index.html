@@ -670,11 +670,11 @@
                 <div class="section-title">Вакантные должности (Слоты)</div>
                 <ul class="rank-list">
                     <li class="rank-item">
-                        <span class="rank-name">Заместители Начальника Тюрьмы</span>
+                        <span class="rank-name">Заместитель Начальника</span>
                         <span id="ui-deputy" class="rank-status status-full">3 / 3 ЗАНЯТО</span>
                     </li>
                     <li class="rank-item">
-                        <span class="rank-name">Инспекторы</span>
+                        <span class="rank-name">Инспектор</span>
                         <span id="ui-inspector" class="rank-status status-open">0 / 7 СВОБОДНО</span>
                     </li>
                     <li class="rank-item">
@@ -691,21 +691,21 @@
             <!-- БЛОК ЗАЯВОК -->
             <div class="application-section">
                 <div class="section-title">Заявка на Старший Состав</div>
-                <form id="apply-form" class="apply-form" name="submit-to-google-sheet">
+                <form id="apply-form" class="apply-form">
                     
                     <div class="form-group">
                         <label>Имя Фамилия (Nick_Name)</label>
-                        <input type="text" name="playerName" placeholder="Например: Yuma Takimura" required>
+                        <input type="text" id="playerName" name="playerName" placeholder="Например: Yuma Takimura" required>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Ваш Discord</label>
-                            <input type="text" name="discordId" placeholder="Например: user#1234" required>
+                            <input type="text" id="discordId" name="discordId" placeholder="Например: user#1234" required>
                         </div>
                         <div class="form-group">
                             <label>Ваш Static ID</label>
-                            <input type="number" name="staticId" placeholder="Например: 12345" required>
+                            <input type="number" id="staticId" name="staticId" placeholder="Например: 12345" required>
                         </div>
                     </div>
                     
@@ -737,8 +737,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Скрытый инпут, который отправится в гугл таблицу -->
-                            <input type="text" name="timezone" id="hidden-tz" class="hidden-input" required>
+                            <!-- Скрытый инпут -->
+                            <input type="text" id="hidden-tz" class="hidden-input" required>
                             
                             <!-- Дополнительная плашка для "Другой" -->
                             <div id="other-tz-container">
@@ -749,18 +749,18 @@
                         
                         <div class="form-group">
                             <label>Средний онлайн (в часах)</label>
-                            <input type="text" name="online" placeholder="Например: 4-6 часов" required>
+                            <input type="text" id="online" name="online" placeholder="Например: 4-6 часов" required>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Время прайм-тайма</label>
-                            <input type="text" name="primetime" placeholder="Например: с 18:00 до 22:00" required>
+                            <input type="text" id="primetime" name="primetime" placeholder="Например: с 18:00 до 22:00" required>
                         </div>
                         <div class="form-group">
                             <label>Знание законодательства (от 1 до 10)</label>
-                            <input type="number" name="lawKnowledge" min="1" max="10" placeholder="Например: 8" required>
+                            <input type="number" id="lawKnowledge" name="lawKnowledge" min="1" max="10" placeholder="Например: 8" required>
                         </div>
                     </div>
                     
@@ -778,7 +778,7 @@
 
                     <div class="form-group">
                         <label>Опыт руководства и цель вступления</label>
-                        <textarea name="reason" placeholder="Кратко опишите ваш опыт и почему вы подаете заявку на старший состав" required></textarea>
+                        <textarea id="reason" name="reason" placeholder="Кратко опишите ваш опыт и почему вы подаете заявку на старший состав" required></textarea>
                     </div>
 
                     <button type="submit" class="submit-btn" id="submit-btn">Отправить заявку</button>
@@ -890,10 +890,10 @@
             }
         });
 
-        // === ОТПРАВКА ДАННЫХ В GOOGLE ТАБЛИЦУ ===
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwURQ44S8mMWXHo0UhITqmpTmF_JogOG4wUdZpeYzJ4nBPmvdipaeBqHYEWbA_qmq-THw/exec'; 
+        // === ОТПРАВКА ДАННЫХ В GOOGLE ТАБЛИЦУ (НАДЕЖНЫЙ МЕТОД NO-CORS) ===
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzzYfiv7IkDwyAO4o-sBZ-9bbjT0ewQQsXZpKXxW-L5ruKKHJFYel4bzQbog_5uUr7GvQ/exec'; 
 
-        const form = document.forms['submit-to-google-sheet'];
+        const form = document.getElementById('apply-form');
         const btn = document.getElementById('submit-btn');
         const messageBox = document.getElementById('form-message');
 
@@ -908,52 +908,71 @@
                 return;
             }
 
-            let originalTzValue = hiddenTz.value;
-            if (originalTzValue === 'Другой') {
+            let finalTimezone = hiddenTz.value;
+            if (finalTimezone === 'Другой') {
                 if (!customInput.value.trim()) {
                     alert("Пожалуйста, введите ваш часовой пояс!");
                     return;
                 }
-                hiddenTz.value = "Другой: " + customInput.value.trim();
+                finalTimezone = "Другой: " + customInput.value.trim();
+            }
+
+            // Собираем значения радиокнопки судимости
+            const criminalVal = document.querySelector('input[name="criminal"]:checked');
+            if (!criminalVal) {
+                alert("Пожалуйста, укажите наличие судимостей!");
+                return;
             }
 
             btn.disabled = true;
             btn.innerText = 'Отправка...';
 
-            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(response => {
-                    messageBox.className = 'form-message msg-success';
-                    messageBox.innerText = '✅ Заявка на Старший Состав успешно отправлена!';
-                    messageBox.style.display = 'block';
-                    btn.style.display = 'none';
-                    form.reset();
-                    
-                    document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
-                    document.querySelector('.custom-select-trigger').classList.remove('selected');
-                    const selectedOpt = document.querySelector('.custom-option.selected-opt');
-                    if(selectedOpt) selectedOpt.classList.remove('selected-opt');
-                    hiddenTz.value = '';
-                    
-                    document.getElementById('other-tz-container').style.display = 'none';
-                    customInput.removeAttribute('required');
+            // Ручная сборка параметров для обхода CORS ограничений GitHub Pages
+            const formData = new URLSearchParams();
+            formData.append('playerName', document.getElementById('playerName').value);
+            formData.append('discordId', document.getElementById('discordId').value);
+            formData.append('staticId', document.getElementById('staticId').value);
+            formData.append('timezone', finalTimezone);
+            formData.append('online', document.getElementById('online').value);
+            formData.append('primetime', document.getElementById('primetime').value);
+            formData.append('lawKnowledge', document.getElementById('lawKnowledge').value);
+            formData.append('criminal', criminalVal.value);
+            formData.append('reason', document.getElementById('reason').value);
 
-                    setTimeout(() => {
-                        btn.style.display = 'block';
-                        btn.disabled = false;
-                        btn.innerText = 'Отправить заявку';
-                        messageBox.style.display = 'none';
-                    }, 5000);
-                })
-                .catch(error => {
-                    if (originalTzValue === 'Другой') {
-                        hiddenTz.value = 'Другой';
-                    }
-                    messageBox.className = 'form-message msg-error';
-                    messageBox.innerText = '❌ Произошла ошибка. Проверьте ссылку скрипта.';
-                    messageBox.style.display = 'block';
+            fetch(scriptURL, { 
+                method: 'POST', 
+                mode: 'no-cors',
+                body: formData
+            })
+            .then(() => {
+                messageBox.className = 'form-message msg-success';
+                messageBox.innerText = '✅ Заявка на Старший Состав успешно отправлена!';
+                messageBox.style.display = 'block';
+                btn.style.display = 'none';
+                form.reset();
+                
+                // Сброс кастомного селекта
+                document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
+                document.querySelector('.custom-select-trigger').classList.remove('selected');
+                const selectedOpt = document.querySelector('.custom-option.selected-opt');
+                if(selectedOpt) selectedOpt.classList.remove('selected-opt');
+                hiddenTz.value = '';
+                document.getElementById('other-tz-container').style.display = 'none';
+
+                setTimeout(() => {
+                    btn.style.display = 'block';
                     btn.disabled = false;
                     btn.innerText = 'Отправить заявку';
-                });
+                    messageBox.style.display = 'none';
+                }, 5000);
+            })
+            .catch(error => {
+                messageBox.className = 'form-message msg-error';
+                messageBox.innerText = '❌ Произошла ошибка отправки.';
+                messageBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = 'Отправить заявку';
+            });
         });
     </script>
 </body>
