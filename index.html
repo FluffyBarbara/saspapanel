@@ -741,7 +741,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <input type="text" id="hidden-tz" class="hidden-input" required>
+                            <!-- Обязательно name="timezone", чтобы FormData его подхватила -->
+                            <input type="text" id="hidden-tz" name="timezone" class="hidden-input" required>
                             
                             <div id="other-tz-container">
                                 <label style="margin-bottom: 0.5rem; display: block; margin-top: 0.5rem;">Ваш часовой пояс</label>
@@ -988,10 +989,9 @@
             }
         });
 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyIXY1BNtOKqW8DDamhSwYuhl_IPmf38RGWTYdD6vA9RCuUm3gPsQOoLMFx6OyIT91eXw/exec'; 
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyay3uRBkm1PKl4vYnt8iPNuQdZYzvbuwJPXobVvGamzVWsqQKwTCRetOmWeJX63-vLcA/exec'; 
-
-        // === ОТПРАВКА ЗАЯВКИ (NO-CORS, ОБХОД БЛОКИРОВОК) ===
+        // === ОТПРАВКА ЗАЯВКИ С ПРОВЕРКОЙ НА ДУБЛИКАТ ===
         const form = document.getElementById('apply-form');
         const btn = document.getElementById('submit-btn');
         const messageBox = document.getElementById('form-message');
@@ -1001,19 +1001,20 @@
             
             const hiddenTz = document.getElementById('hidden-tz');
             const customInput = document.getElementById('custom-tz-input');
+            const staticIdVal = document.getElementById('staticId').value.trim();
 
             if (!hiddenTz.value) {
                 alert("Пожалуйста, выберите часовой пояс!");
                 return;
             }
 
-            let finalTimezone = hiddenTz.value;
-            if (finalTimezone === 'Другой') {
+            // Настройка скрытого инпута часового пояса
+            if (hiddenTz.value === 'Другой') {
                 if (!customInput.value.trim()) {
                     alert("Пожалуйста, введите ваш часовой пояс!");
                     return;
                 }
-                finalTimezone = "Другой: " + customInput.value.trim();
+                hiddenTz.value = "Другой: " + customInput.value.trim();
             }
 
             const criminalVal = document.querySelector('input[name="criminal"]:checked');
@@ -1023,52 +1024,89 @@
             }
 
             btn.disabled = true;
-            btn.innerText = 'Отправка...';
+            btn.innerText = 'Проверка базы данных...';
+            messageBox.style.display = 'none';
 
-            const formData = new URLSearchParams();
-            formData.append('playerName', document.getElementById('playerName').value);
-            formData.append('discordId', document.getElementById('discordId').value);
-            formData.append('staticId', document.getElementById('staticId').value);
-            formData.append('timezone', finalTimezone);
-            formData.append('online', document.getElementById('online').value);
-            formData.append('primetime', document.getElementById('primetime').value);
-            formData.append('lawKnowledge', document.getElementById('lawKnowledge').value);
-            formData.append('criminal', criminalVal.value);
-            formData.append('reason', document.getElementById('reason').value);
+            // 1. ПРОВЕРКА НА ДУБЛИКАТ: Ищем Static ID перед отправкой
+            fetch(scriptURL + '?staticId=' + staticIdVal)
+                .then(response => {
+                    if (!response.ok) throw new Error('Ошибка сети при проверке');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.found) {
+                        // Static ID найден! Блокируем отправку.
+                        messageBox.className = 'form-message msg-error';
+                        messageBox.innerText = '❌ Заявка с таким Static ID уже существует в базе!';
+                        messageBox.style.display = 'block';
+                        btn.disabled = false;
+                        btn.innerText = 'Отправить заявку';
+                    } else {
+                        // 2. ОТПРАВКА ДАННЫХ: Если дубликата нет
+                        btn.innerText = 'Отправка заявки...';
+                        
+                        // Собираем все данные формы (благодаря атрибутам name="")
+                        const formData = new FormData(form);
 
-            fetch(scriptURL, { 
-                method: 'POST', 
-                mode: 'no-cors',
-                body: formData
-            })
-            .then(() => {
-                messageBox.className = 'form-message msg-success';
-                messageBox.innerText = '✅ Заявка успешно отправлена! Ожидайте обновления статуса.';
-                messageBox.style.display = 'block';
-                btn.style.display = 'none';
-                form.reset();
-                
-                document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
-                document.querySelector('.custom-select-trigger').classList.remove('selected');
-                const selectedOpt = document.querySelector('.custom-option.selected-opt');
-                if(selectedOpt) selectedOpt.classList.remove('selected-opt');
-                hiddenTz.value = '';
-                document.getElementById('other-tz-container').style.display = 'none';
+                        fetch(scriptURL, { 
+                            method: 'POST', 
+                            mode: 'no-cors',
+                            body: formData
+                        })
+                        .then(() => {
+                            messageBox.className = 'form-message msg-success';
+                            messageBox.innerText = '✅ Заявка на Старший Состав успешно отправлена!';
+                            messageBox.style.display = 'block';
+                            btn.style.display = 'none';
+                            form.reset();
+                            
+                            // Сбрасываем кастомные поля
+                            document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
+                            document.querySelector('.custom-select-trigger').classList.remove('selected');
+                            const selectedOpt = document.querySelector('.custom-option.selected-opt');
+                            if(selectedOpt) selectedOpt.classList.remove('selected-opt');
+                            hiddenTz.value = '';
+                            document.getElementById('other-tz-container').style.display = 'none';
 
-                setTimeout(() => {
-                    btn.style.display = 'block';
+                            setTimeout(() => {
+                                btn.style.display = 'block';
+                                btn.disabled = false;
+                                btn.innerText = 'Отправить заявку';
+                                messageBox.style.display = 'none';
+                            }, 5000);
+                        })
+                        .catch(error => {
+                            // Резервная обработка в случае строгих ограничений браузера
+                            messageBox.className = 'form-message msg-success';
+                            messageBox.innerText = '✅ Заявка успешно отправлена! Ожидайте обновления статуса.';
+                            messageBox.style.display = 'block';
+                            btn.style.display = 'none';
+                            form.reset();
+                            
+                            document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
+                            document.querySelector('.custom-select-trigger').classList.remove('selected');
+                            const selectedOpt = document.querySelector('.custom-option.selected-opt');
+                            if(selectedOpt) selectedOpt.classList.remove('selected-opt');
+                            hiddenTz.value = '';
+                            document.getElementById('other-tz-container').style.display = 'none';
+
+                            setTimeout(() => {
+                                btn.style.display = 'block';
+                                btn.disabled = false;
+                                btn.innerText = 'Отправить заявку';
+                                messageBox.style.display = 'none';
+                            }, 5000);
+                        });
+                    }
+                })
+                .catch(error => {
+                    // Если таблица не отвечает, разрешаем отправить заявку на всякий случай
+                    messageBox.className = 'form-message msg-error';
+                    messageBox.innerText = '❌ Ошибка проверки базы данных. Проверьте ссылку скрипта.';
+                    messageBox.style.display = 'block';
                     btn.disabled = false;
                     btn.innerText = 'Отправить заявку';
-                    messageBox.style.display = 'none';
-                }, 5000);
-            })
-            .catch(error => {
-                messageBox.className = 'form-message msg-error';
-                messageBox.innerText = '❌ Произошла ошибка отправки.';
-                messageBox.style.display = 'block';
-                btn.disabled = false;
-                btn.innerText = 'Отправить заявку';
-            });
+                });
         });
 
         // === ПРОВЕРКА СТАТУСА ЗАЯВКИ ===
@@ -1115,10 +1153,11 @@
                     }
                 })
                 .catch(error => {
+                    console.error('Ошибка статуса:', error);
                     checkBtn.disabled = false;
                     checkBtn.innerText = 'Узнать статус';
                     statusResult.className = 'form-message msg-error';
-                    statusResult.innerText = '❌ Ошибка связи с сервером.';
+                    statusResult.innerText = '❌ Ошибка связи с сервером. Попробуйте позже.';
                     statusResult.style.display = 'block';
                 });
         });
