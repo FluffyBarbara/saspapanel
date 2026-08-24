@@ -223,7 +223,6 @@
             color: #fff;
         }
 
-        /* Прогресс бар */
         .progress-section, .ranks-section, .application-section {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--glass-border);
@@ -257,7 +256,6 @@
             box-shadow: 0 0 20px var(--red-glow);
         }
 
-        /* Список рангов */
         .rank-list {
             list-style: none;
         }
@@ -301,7 +299,6 @@
             border: 1px solid rgba(232, 28, 37, 0.2);
         }
 
-        /* --- ФОРМА ЗАЯВОК --- */
         .apply-form {
             display: flex;
             flex-direction: column;
@@ -360,7 +357,6 @@
             color: rgba(255, 255, 255, 0.3);
         }
 
-        /* --- КАСТОМНЫЙ ВЫПАДАЮЩИЙ СПИСОК (DROPDOWN) --- */
         .custom-select-wrapper {
             position: relative;
             user-select: none;
@@ -506,14 +502,12 @@
             display: none;
         }
 
-        /* Поле ввода для "Другой часовой пояс" */
         #other-tz-container {
             display: none;
             margin-top: 1rem;
             animation: fadeIn 0.3s ease;
         }
 
-        /* Стили для радио кнопок */
         .radio-group {
             display: flex;
             gap: 1.5rem;
@@ -590,7 +584,7 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Адаптивность */
+
         @media (max-width: 960px) {
             body { padding: 1rem; }
             .container { flex-direction: column; padding: 2rem; }
@@ -610,7 +604,7 @@
     <div class="overlay"></div>
 
     <div class="container">
-        <!-- ЛЕВЫЙ БЛОК -->
+
         <div class="profile">
             <div class="profile-img-container">
                 <img class="profile-img" src="photoosnova.png" alt="Yuma Takimura">
@@ -621,10 +615,9 @@
             </div>
         </div>
 
-        <!-- ПРАВЫЙ БЛОК -->
+
         <div class="dashboard">
 
-            <!-- Информационная панель -->
             <div class="info-panel">
                 <div class="info-item">
                     <span class="info-label">Сервер</span>
@@ -636,7 +629,6 @@
                 </div>
             </div>
 
-            <!-- Статистика срока -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="label">Дней на посту</div>
@@ -652,7 +644,7 @@
                 </div>
             </div>
 
-            <!-- Прогресс лидерства -->
+
             <div class="progress-section">
                 <div class="section-title">Прогресс срока</div>
                 <div class="progress-header">
@@ -665,7 +657,7 @@
                 </div>
             </div>
 
-            <!-- Вакантные должности -->
+  
             <div class="ranks-section">
                 <div class="section-title">Вакантные должности (Слоты)</div>
                 <ul class="rank-list">
@@ -688,7 +680,7 @@
                 </ul>
             </div>
 
-            <!-- БЛОК ЗАЯВОК -->
+        
             <div class="application-section">
                 <div class="section-title">Заявка на Старший Состав</div>
                 <form id="apply-form" class="apply-form">
@@ -713,7 +705,7 @@
                         <div class="form-group">
                             <label>Часовой пояс</label>
                             
-                            <!-- КАСТОМНЫЙ DROPDOWN -->
+                           
                             <div class="custom-select-wrapper">
                                 <div class="custom-select">
                                     <div class="custom-select-trigger">
@@ -737,10 +729,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Скрытый инпут -->
+                           
                             <input type="text" id="hidden-tz" class="hidden-input" required>
                             
-                            <!-- Дополнительная плашка для "Другой" -->
+                            
                             <div id="other-tz-container">
                                 <label style="margin-bottom: 0.5rem; display: block; margin-top: 0.5rem;">Ваш часовой пояс</label>
                                 <input type="text" id="custom-tz-input" placeholder="Например: UTC+10">
@@ -790,7 +782,7 @@
     </div>
 
     <script>
-        // === НАСТРОЙКИ СРОКА ===
+        
         const termStart = new Date('2026-08-13T00:00:00'); 
         const totalDaysCount = 31; 
 
@@ -847,7 +839,7 @@
             window.requestAnimationFrame(step);
         }, 500);
 
-        // === ЛОГИКА КАСТОМНОГО ВЫПАДАЮЩЕГО СПИСКА ===
+       
         document.querySelector('.custom-select-wrapper').addEventListener('click', function() {
             this.querySelector('.custom-select').classList.toggle('open');
         });
@@ -890,7 +882,7 @@
             }
         });
 
-        // === ОТПРАВКА ДАННЫХ В GOOGLE ТАБЛИЦУ (НАДЕЖНЫЙ МЕТОД NO-CORS) ===
+      
         const scriptURL = 'https://script.google.com/macros/s/AKfycbzzYfiv7IkDwyAO4o-sBZ-9bbjT0ewQQsXZpKXxW-L5ruKKHJFYel4bzQbog_5uUr7GvQ/exec'; 
 
         const form = document.getElementById('apply-form');
@@ -917,7 +909,7 @@
                 finalTimezone = "Другой: " + customInput.value.trim();
             }
 
-            // Собираем значения радиокнопки судимости
+          
             const criminalVal = document.querySelector('input[name="criminal"]:checked');
             if (!criminalVal) {
                 alert("Пожалуйста, укажите наличие судимостей!");
@@ -927,7 +919,7 @@
             btn.disabled = true;
             btn.innerText = 'Отправка...';
 
-            // Ручная сборка параметров для обхода CORS ограничений GitHub Pages
+          
             const formData = new URLSearchParams();
             formData.append('playerName', document.getElementById('playerName').value);
             formData.append('discordId', document.getElementById('discordId').value);
