@@ -222,6 +222,11 @@
             font-weight: 700;
             color: #fff;
         }
+        
+        .highlight-text {
+            color: var(--red);
+            text-shadow: 0 0 10px var(--red-glow);
+        }
 
         /* Прогресс бар */
         .progress-section, .ranks-section, .application-section {
@@ -640,6 +645,10 @@
                     <span class="info-label">Фракция</span>
                     <span class="info-value">SASPA</span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">Место сбора состава</span>
+                    <span class="info-value highlight-text">📍 Киностудия</span>
+                </div>
             </div>
 
             <!-- Статистика срока -->
@@ -741,7 +750,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Обязательно name="timezone", чтобы FormData его подхватила -->
                             <input type="text" id="hidden-tz" name="timezone" class="hidden-input" required>
                             
                             <div id="other-tz-container">
@@ -881,13 +889,10 @@
                     if (line.includes('Зам. Начальника:')) deputyLine = line.trim();
                     if (line.includes('Инспектор:')) inspectorLine = line.trim();
                     
-                    // ИСПРАВЛЕНИЕ: Ищем 'Head', но строго ИСКЛЮЧАЕМ 'D. Head'
                     if (line.includes('Head ') && !line.includes('D. Head') && line.includes('[Свободно:')) {
                         const match = line.match(/\[Свободно:\s*(\d+)\]/);
                         if (match) headTotalFree += parseInt(match[1]);
                     }
-                    
-                    // Считаем D. Head отдельно
                     if (line.includes('D. Head') && line.includes('[Свободно:')) {
                         const match = line.match(/\[Свободно:\s*(\d+)\]/);
                         if (match) subheadTotalFree += parseInt(match[1]);
@@ -989,7 +994,7 @@
             }
         });
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyIXY1BNtOKqW8DDamhSwYuhl_IPmf38RGWTYdD6vA9RCuUm3gPsQOoLMFx6OyIT91eXw/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyQLhIyyrFc_BTHAmRIlB-FPl7-l7QUGVJeUfztk1FQuoztYq3uNdp3ml4tcgdjyVYdGA/exec'; 
 
         // === ОТПРАВКА ЗАЯВКИ С ПРОВЕРКОЙ НА ДУБЛИКАТ ===
         const form = document.getElementById('apply-form');
@@ -1008,13 +1013,13 @@
                 return;
             }
 
-            // Настройка скрытого инпута часового пояса
-            if (hiddenTz.value === 'Другой') {
+            let finalTimezone = hiddenTz.value;
+            if (finalTimezone === 'Другой') {
                 if (!customInput.value.trim()) {
                     alert("Пожалуйста, введите ваш часовой пояс!");
                     return;
                 }
-                hiddenTz.value = "Другой: " + customInput.value.trim();
+                finalTimezone = "Другой: " + customInput.value.trim();
             }
 
             const criminalVal = document.querySelector('input[name="criminal"]:checked');
@@ -1042,16 +1047,24 @@
                         btn.disabled = false;
                         btn.innerText = 'Отправить заявку';
                     } else {
-                        // 2. ОТПРАВКА ДАННЫХ: Если дубликата нет
+                        // 2. ОТПРАВКА ДАННЫХ В НАДЕЖНОМ ФОРМАТЕ URLSearchParams
                         btn.innerText = 'Отправка заявки...';
                         
-                        // Собираем все данные формы (благодаря атрибутам name="")
-                        const formData = new FormData(form);
+                        const params = new URLSearchParams();
+                        params.append('playerName', document.getElementById('playerName').value);
+                        params.append('discordId', document.getElementById('discordId').value);
+                        params.append('staticId', document.getElementById('staticId').value);
+                        params.append('timezone', finalTimezone);
+                        params.append('online', document.getElementById('online').value);
+                        params.append('primetime', document.getElementById('primetime').value);
+                        params.append('lawKnowledge', document.getElementById('lawKnowledge').value);
+                        params.append('criminal', criminalVal.value);
+                        params.append('reason', document.getElementById('reason').value);
 
                         fetch(scriptURL, { 
                             method: 'POST', 
                             mode: 'no-cors',
-                            body: formData
+                            body: params
                         })
                         .then(() => {
                             messageBox.className = 'form-message msg-success';
@@ -1060,7 +1073,6 @@
                             btn.style.display = 'none';
                             form.reset();
                             
-                            // Сбрасываем кастомные поля
                             document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
                             document.querySelector('.custom-select-trigger').classList.remove('selected');
                             const selectedOpt = document.querySelector('.custom-option.selected-opt');
@@ -1076,7 +1088,6 @@
                             }, 5000);
                         })
                         .catch(error => {
-                            // Резервная обработка в случае строгих ограничений браузера
                             messageBox.className = 'form-message msg-success';
                             messageBox.innerText = '✅ Заявка успешно отправлена! Ожидайте обновления статуса.';
                             messageBox.style.display = 'block';
@@ -1100,7 +1111,6 @@
                     }
                 })
                 .catch(error => {
-                    // Если таблица не отвечает, разрешаем отправить заявку на всякий случай
                     messageBox.className = 'form-message msg-error';
                     messageBox.innerText = '❌ Ошибка проверки базы данных. Проверьте ссылку скрипта.';
                     messageBox.style.display = 'block';
