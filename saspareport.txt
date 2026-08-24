@@ -1,0 +1,55 @@
+==========================================================
+ SASPA DOSSIER MANAGEMENT - SYSTEM REPORT BY FLUFFY BARBARA
+==========================================================
+ ДАТА ФОРМИРОВАНИЯ: 24.08.2026, 17:09:29
+ ВСЕГО СОТРУДНИКОВ В БАЗЕ: 6
+
+--- АНАЛИТИКА КВОТ / СВОБОДНЫЕ МЕСТА ---
+ Зам. Начальника: 3 / 3  [МЕСТ НЕТ]
+ Инспектор:       0 / 7  [Свободно: 7]
+
+ Head A:       0 / 1  [Свободно: 1]
+ D. Head A:    0 / 3  [Свободно: 3]
+-----------------------------------------
+ Head SPD:       0 / 1  [Свободно: 1]
+ D. Head SPD:    0 / 3  [Свободно: 3]
+-----------------------------------------
+ Head HRD:       0 / 1  [Свободно: 1]
+ D. Head HRD:    0 / 3  [Свободно: 3]
+-----------------------------------------
+ Head ED:       0 / 1  [Свободно: 1]
+ D. Head ED:    0 / 3  [Свободно: 3]
+-----------------------------------------
+ Head CRUSH:       1 / 1  [МЕСТ НЕТ]
+ D. Head CRUSH:    0 / 3  [Свободно: 3]
+-----------------------------------------
+ Head USMS:       0 / 1  [Свободно: 1]
+ D. Head USMS:    0 / 3  [Свободно: 3]
+-----------------------------------------
+
+--- ДЕЙСТВУЮЩИЙ ЛИЧНЫЙ СОСТАВ ---
+
+>> НАЧАЛЬНИК ТЮРЬМЫ <<
+    - Yuma Takimura
+
+
+>> ЗАМЕСТИТЕЛЬ НАЧАЛЬНИКА ТЮРЬМЫ <<
+    - Bob Royce
+    - Eggsy Kingsman
+    - Pega Rivyer
+
+
+>> НАЧАЛЬНИК ОТРЯДА <<
+  [ ОТДЕЛ: CRUSH ]
+    - Zeus Monaco (Head CRUSH)
+
+
+>> ЗАМЕСТИТЕЛЬ НАЧАЛЬНИКА ОТРЯДА <<
+    - Charles Bollson
+
+
+
+=======================================================
+[ SYSTEM DATA BLOCK - DO NOT MODIFY BY FLUFFY BARBARA ]
+=======================================================
+W3siaWQiOjE3ODU3ODAxMDMyNjMsIm5hbWUiOiJZdW1hIFRha2ltdXJhIiwiZGVwYXJ0bWVudCI6ItCd0LDRh9Cw0LvRjNC90LjQuiDQotGO0YDRjNC80YtbMTNdIiwicmFuayI6IiJ9LHsiaWQiOjE3ODc1NTIzODQ0NjYsIm5hbWUiOiJCb2IgUm95Y2UiLCJkZXBhcnRtZW50Ijoi0JfQsNC80LXRgdGC0LjRgtC10LvRjCDQndCw0YfQsNC70YzQvdC40LrQsCDQotGO0YDRjNC80YsiLCJyYW5rIjoiIn0seyJpZCI6MTc4NzU1MjM5OTAzNywibmFtZSI6IlBlZ2EgUml2eWVyIiwiZGVwYXJ0bWVudCI6ItCX0LDQvNC10YHRgtC40YLQtdC70Ywg0J3QsNGH0LDQu9GM0L3QuNC60LAg0KLRjtGA0YzQvNGLIiwicmFuayI6IiJ9LHsiaWQiOjE3ODc1NTI0MTMxMjYsIm5hbWUiOiJFZ2dzeSBLaW5nc21hbiIsImRlcGFydG1lbnQiOiLQl9Cw0LzQtdGB0YLQuNGC0LXQu9GMINCd0LDRh9Cw0LvRjNC90LjQutCwINCi0Y7RgNGM0LzRiyIsInJhbmsiOiIifSx7ImlkIjoxNzg3NTUyNTAyNDEzLCJuYW1lIjoiWmV1cyBNb25hY28iLCJkZXBhcnRtZW50Ijoi0J3QsNGH0LDQu9GM0L3QuNC6INC+0YLRgNGP0LTQsCIsInJhbmsiOiJIZWFkIENSVVNIIn0seyJpZCI6MTc4NzU1MjU3NTgwNCwibmFtZSI6IkNoYXJsZXMgQm9sbHNvbiIsImRlcGFydG1lbnQiOiLQl9Cw0LzQtdGB0YLQuNGC0LXQu9GMINCd0LDRh9Cw0LvRjNC90LjQutCwINC+0YLRgNGP0LTQsCIsInJhbmsiOiIifV0=
