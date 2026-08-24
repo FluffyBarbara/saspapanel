@@ -866,6 +866,7 @@
         }, 500);
 
         // === ЧТЕНИЕ ГОТОВЫХ КВОТ ИЗ SASPAREPORT.TXT ===
+// === ЧТЕНИЕ ГОТОВЫХ КВОТ ИЗ SASPAREPORT.TXT ===
         async function loadQuotasFromReport() {
             try {
                 const response = await fetch('saspareport.txt?t=' + new Date().getTime());
@@ -883,14 +884,70 @@
                     if (line.includes('Зам. Начальника:')) deputyLine = line.trim();
                     if (line.includes('Инспектор:')) inspectorLine = line.trim();
                     
-                    if (line.includes('Head ') && line.includes('[Свободно:')) {
+                    // ИСПРАВЛЕНИЕ: Ищем 'Head', но строго ИСКЛЮЧАЕМ 'D. Head'
+                    if (line.includes('Head ') && !line.includes('D. Head') && line.includes('[Свободно:')) {
                         const match = line.match(/\[Свободно:\s*(\d+)\]/);
                         if (match) headTotalFree += parseInt(match[1]);
                     }
+                    
+                    // Считаем D. Head отдельно
                     if (line.includes('D. Head') && line.includes('[Свободно:')) {
                         const match = line.match(/\[Свободно:\s*(\d+)\]/);
                         if (match) subheadTotalFree += parseInt(match[1]);
                     }
+                });
+
+                function applyUI(elementId, lineText, isHeadOrSub = false, totalFreeCount = 0) {
+                    const el = document.getElementById(elementId);
+                    if (!el) return;
+
+                    if (isHeadOrSub) {
+                        const maxLimit = elementId === 'ui-head' ? 6 : 18;
+                        const busyCount = maxLimit - totalFreeCount;
+                        
+                        if (totalFreeCount <= 0) {
+                            el.textContent = `${maxLimit} / ${maxLimit} ЗАНЯТО`;
+                            el.className = 'rank-status status-full';
+                        } else {
+                            el.textContent = `${busyCount} / ${maxLimit} СВОБОДНО`;
+                            el.className = 'rank-status status-open';
+                        }
+                    } else if (lineText) {
+                        const parts = lineText.split(':');
+                        if (parts.length > 1) {
+                            const info = parts[1].trim(); 
+                            
+                            if (info.includes('МЕСТ НЕТ')) {
+                                const numbers = info.match(/\d+\s*\/\s*\d+/);
+                                el.textContent = (numbers ? numbers[0] : "3 / 3") + " ЗАНЯТО";
+                                el.className = 'rank-status status-full';
+                            } else {
+                                const numbers = info.match(/\d+\s*\/\s*\d+/);
+                                el.textContent = (numbers ? numbers[0] : "0 / 7") + " СВОБОДНО";
+                                el.className = 'rank-status status-open';
+                            }
+                        }
+                    } else {
+                        el.textContent = "ДАННЫЕ НЕ НАЙДЕНЫ";
+                        el.className = 'rank-status status-full';
+                    }
+                }
+
+                applyUI('ui-deputy', deputyLine);
+                applyUI('ui-inspector', inspectorLine);
+                applyUI('ui-head', '', true, headTotalFree);
+                applyUI('ui-subhead', '', true, subheadTotalFree);
+
+            } catch (error) {
+                console.error('Ошибка чтения saspareport.txt:', error);
+                document.getElementById('ui-deputy').textContent = 'ОШИБКА ЗАГРУЗКИ';
+                document.getElementById('ui-inspector').textContent = 'ОШИБКА ЗАГРУЗКИ';
+                document.getElementById('ui-head').textContent = 'ОШИБКА ЗАГРУЗКИ';
+                document.getElementById('ui-subhead').textContent = 'ОШИБКА ЗАГРУЗКИ';
+            }
+        }
+
+        loadQuotasFromReport();
                 });
 
                 function applyUI(elementId, lineText, isHeadOrSub = false, totalFreeCount = 0) {
