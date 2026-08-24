@@ -671,19 +671,19 @@
                 <ul class="rank-list">
                     <li class="rank-item">
                         <span class="rank-name">Заместители Начальника Тюрьмы</span>
-                        <span id="ui-deputy" class="rank-status status-open">Загрузка...</span>
+                        <span id="ui-deputy" class="rank-status status-full">3 / 3 ЗАНЯТО</span>
                     </li>
                     <li class="rank-item">
-                        <span class="rank-name">Инспектор</span>
-                        <span id="ui-inspector" class="rank-status status-open">Загрузка...</span>
+                        <span class="rank-name">Инспекторы</span>
+                        <span id="ui-inspector" class="rank-status status-open">0 / 7 СВОБОДНО</span>
                     </li>
                     <li class="rank-item">
                         <span class="rank-name">Начальники Отделов (Head)</span>
-                        <span id="ui-head" class="rank-status status-open">Загрузка...</span>
+                        <span id="ui-head" class="rank-status status-open">1 / 6 СВОБОДНО</span>
                     </li>
                     <li class="rank-item">
                         <span class="rank-name">Заместители Нач. Отдела (D. Head)</span>
-                        <span id="ui-subhead" class="rank-status status-open">Загрузка...</span>
+                        <span id="ui-subhead" class="rank-status status-open">0 / 18 СВОБОДНО</span>
                     </li>
                 </ul>
             </div>
@@ -753,7 +753,6 @@
                         </div>
                     </div>
 
-                    <!-- НОВЫЕ ПОЛЯ -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Время прайм-тайма</label>
@@ -847,89 +846,6 @@
             };
             window.requestAnimationFrame(step);
         }, 500);
-        
-        // === СИНХРОНИЗАЦИЯ КВОТ С ТЕРМИНАЛОМ (indexsaspa.html) ===
-        function syncQuotasWithTerminal() {
-            // Лимиты из терминала SASPA
-            const MAX_DEPUTY = 3;
-            const MAX_INSPECTOR = 7;
-            const MAX_HEAD = 6;     // 6 отделов по 1
-            const MAX_SUBHEAD = 18; // 6 отделов по 3
-
-            try {
-                // Читаем базу данных напрямую из памяти браузера
-                const dbString = localStorage.getItem('saspaDatabaseV1');
-                const roster = dbString ? JSON.parse(dbString) : [];
-
-                let countDeputy = 0;
-                let countInspector = 0;
-                let countHead = 0;
-                let countSubHead = 0;
-
-                const saspaDepts = ['A', 'SPD', 'HRD', 'ED', 'CRUSH', 'USMS'];
-
-                roster.forEach(agent => {
-                    // Очищаем название роли (убираем ранг в квадратных скобках, если есть)
-                    const cleanDept = (agent.department || '').replace(/\[\d+\]/g, '').trim();
-                    if (cleanDept === 'Заместитель Начальника Тюрьмы') countDeputy++;
-                    if (cleanDept === 'Инспектор') countInspector++;
-
-                    let rankStr = agent.rank || '';
-                    let rLower = rankStr.toLowerCase();
-                    
-                    // Функция из терминала для определения отдела сотрудника
-                    let extDept = 'БЕЗ ОТДЕЛА';
-                    if (!rLower.includes('free') && !rLower.includes('свободен')) {
-                        for (let d of saspaDepts) {
-                            if (new RegExp(`\\b${d}\\b`, 'i').test(rankStr)) {
-                                extDept = d; 
-                                break;
-                            }
-                        }
-                    }
-
-                    // Если сотрудник в одном из 6 отделов, проверяем его должность
-                    if (saspaDepts.includes(extDept)) {
-                        if (rLower.includes('head') && !rLower.includes('d. head') && !rLower.includes('d.head') && !rLower.includes('зам')) {
-                            countHead++;
-                        } else if (rLower.includes('d. head') || rLower.includes('d.head') || rLower.includes('зам')) {
-                            countSubHead++;
-                        }
-                    }
-                });
-
-                function updateUI(id, current, max) {
-                    const el = document.getElementById(id);
-                    if (!el) return;
-                    
-                    if (current >= max) {
-                        el.textContent = `${current} / ${max} ЗАНЯТО`;
-                        el.className = 'rank-status status-full';
-                    } else {
-                        el.textContent = `${current} / ${max} СВОБОДНО`;
-                        el.className = 'rank-status status-open';
-                    }
-                }
-
-                updateUI('ui-deputy', countDeputy, MAX_DEPUTY);
-                updateUI('ui-inspector', countInspector, MAX_INSPECTOR);
-                updateUI('ui-head', countHead, MAX_HEAD);
-                updateUI('ui-subhead', countSubHead, MAX_SUBHEAD);
-                
-            } catch (error) {
-                console.error('Ошибка синхронизации с Терминалом:', error);
-            }
-        }
-
-        // Запуск синхронизации при загрузке страницы
-        syncQuotasWithTerminal();
-
-        // Слушаем изменения в базе. Если ты внесешь сотрудника в Терминале, слоты обновятся мгновенно!
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'saspaDatabaseV1') {
-                syncQuotasWithTerminal();
-            }
-        });
 
         // === ЛОГИКА КАСТОМНОГО ВЫПАДАЮЩЕГО СПИСКА ===
         document.querySelector('.custom-select-wrapper').addEventListener('click', function() {
@@ -975,7 +891,7 @@
         });
 
         // === ОТПРАВКА ДАННЫХ В GOOGLE ТАБЛИЦУ ===
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRcSKrqQaxYBR6t4u68B8qzJKJwQBVBoy8sNfD4g7wGd1hgn3ZgUknQ7zVtBFw6px9oA/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwURQ44S8mMWXHo0UhITqmpTmF_JogOG4wUdZpeYzJ4nBPmvdipaeBqHYEWbA_qmq-THw/exec'; 
 
         const form = document.forms['submit-to-google-sheet'];
         const btn = document.getElementById('submit-btn');
