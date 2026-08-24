@@ -223,6 +223,7 @@
             color: #fff;
         }
 
+        /* Прогресс бар */
         .progress-section, .ranks-section, .application-section {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--glass-border);
@@ -256,6 +257,7 @@
             box-shadow: 0 0 20px var(--red-glow);
         }
 
+        /* Список рангов */
         .rank-list {
             list-style: none;
         }
@@ -299,6 +301,7 @@
             border: 1px solid rgba(232, 28, 37, 0.2);
         }
 
+        /* --- ФОРМА ЗАЯВОК И ОТСЛЕЖИВАНИЕ --- */
         .apply-form {
             display: flex;
             flex-direction: column;
@@ -357,6 +360,7 @@
             color: rgba(255, 255, 255, 0.3);
         }
 
+        /* --- КАСТОМНЫЙ ВЫПАДАЮЩИЙ СПИСОК (DROPDOWN) --- */
         .custom-select-wrapper {
             position: relative;
             user-select: none;
@@ -502,12 +506,14 @@
             display: none;
         }
 
+        /* Поле ввода для "Другой часовой пояс" */
         #other-tz-container {
             display: none;
             margin-top: 1rem;
             animation: fadeIn 0.3s ease;
         }
 
+        /* Стили для радио кнопок */
         .radio-group {
             display: flex;
             gap: 1.5rem;
@@ -573,6 +579,12 @@
             color: #2ecc71;
         }
 
+        .msg-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
         .msg-error {
             background: rgba(232, 28, 37, 0.1);
             border: 1px solid rgba(232, 28, 37, 0.3);
@@ -584,7 +596,7 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-
+        /* Адаптивность */
         @media (max-width: 960px) {
             body { padding: 1rem; }
             .container { flex-direction: column; padding: 2rem; }
@@ -604,7 +616,7 @@
     <div class="overlay"></div>
 
     <div class="container">
-
+        <!-- ЛЕВЫЙ БЛОК -->
         <div class="profile">
             <div class="profile-img-container">
                 <img class="profile-img" src="photoosnova.png" alt="Yuma Takimura">
@@ -615,9 +627,10 @@
             </div>
         </div>
 
-
+        <!-- ПРАВЫЙ БЛОК -->
         <div class="dashboard">
 
+            <!-- Информационная панель -->
             <div class="info-panel">
                 <div class="info-item">
                     <span class="info-label">Сервер</span>
@@ -629,6 +642,7 @@
                 </div>
             </div>
 
+            <!-- Статистика срока -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="label">Дней на посту</div>
@@ -644,7 +658,7 @@
                 </div>
             </div>
 
-
+            <!-- Прогресс лидерства -->
             <div class="progress-section">
                 <div class="section-title">Прогресс срока</div>
                 <div class="progress-header">
@@ -657,16 +671,16 @@
                 </div>
             </div>
 
-  
+            <!-- Вакантные должности -->
             <div class="ranks-section">
                 <div class="section-title">Вакантные должности (Слоты)</div>
                 <ul class="rank-list">
                     <li class="rank-item">
-                        <span class="rank-name">Заместители Начальника Тюрьмы</span>
+                        <span class="rank-name">Заместитель Начальника</span>
                         <span id="ui-deputy" class="rank-status status-full">3 / 3 ЗАНЯТО</span>
                     </li>
                     <li class="rank-item">
-                        <span class="rank-name">Инспекторы</span>
+                        <span class="rank-name">Инспектор</span>
                         <span id="ui-inspector" class="rank-status status-open">0 / 7 СВОБОДНО</span>
                     </li>
                     <li class="rank-item">
@@ -680,7 +694,7 @@
                 </ul>
             </div>
 
-        
+            <!-- БЛОК ЗАЯВОК -->
             <div class="application-section">
                 <div class="section-title">Заявка на Старший Состав</div>
                 <form id="apply-form" class="apply-form">
@@ -704,8 +718,6 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Часовой пояс</label>
-                            
-                           
                             <div class="custom-select-wrapper">
                                 <div class="custom-select">
                                     <div class="custom-select-trigger">
@@ -729,9 +741,7 @@
                                     </div>
                                 </div>
                             </div>
-                           
                             <input type="text" id="hidden-tz" class="hidden-input" required>
-                            
                             
                             <div id="other-tz-container">
                                 <label style="margin-bottom: 0.5rem; display: block; margin-top: 0.5rem;">Ваш часовой пояс</label>
@@ -778,11 +788,24 @@
                 </form>
             </div>
 
+            <!-- БЛОК ОТСЛЕЖИВАНИЯ СТАТУСА -->
+            <div class="application-section" style="margin-top: 2rem;">
+                <div class="section-title">Отслеживание заявки</div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Введите ваш Static ID, чтобы узнать текущий статус вашей заявки.</p>
+                <div class="form-row" style="align-items: center;">
+                    <div class="form-group" style="margin: 0;">
+                        <input type="number" id="check-static-id" placeholder="Ваш Static ID" required>
+                    </div>
+                    <button type="button" class="submit-btn" id="check-status-btn" style="margin: 0; min-width: 180px;">Узнать статус</button>
+                </div>
+                <div id="status-result" class="form-message"></div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        
+        // === НАСТРОЙКИ СРОКА ===
         const termStart = new Date('2026-08-13T00:00:00'); 
         const totalDaysCount = 31; 
 
@@ -839,7 +862,87 @@
             window.requestAnimationFrame(step);
         }, 500);
 
-       
+        // === ЧТЕНИЕ ГОТОВЫХ КВОТ ИЗ SASPAREPORT.TXT ===
+        async function loadQuotasFromReport() {
+            try {
+                const response = await fetch('saspareport.txt?t=' + new Date().getTime());
+                if (!response.ok) throw new Error('Файл saspareport.txt не найден');
+
+                const text = await response.text();
+                const lines = text.split('\n');
+
+                let deputyLine = "";
+                let inspectorLine = "";
+                let headTotalFree = 0;
+                let subheadTotalFree = 0;
+
+                lines.forEach(line => {
+                    if (line.includes('Зам. Начальника:')) deputyLine = line.trim();
+                    if (line.includes('Инспектор:')) inspectorLine = line.trim();
+                    
+                    if (line.includes('Head ') && line.includes('[Свободно:')) {
+                        const match = line.match(/\[Свободно:\s*(\d+)\]/);
+                        if (match) headTotalFree += parseInt(match[1]);
+                    }
+                    if (line.includes('D. Head') && line.includes('[Свободно:')) {
+                        const match = line.match(/\[Свободно:\s*(\d+)\]/);
+                        if (match) subheadTotalFree += parseInt(match[1]);
+                    }
+                });
+
+                function applyUI(elementId, lineText, isHeadOrSub = false, totalFreeCount = 0) {
+                    const el = document.getElementById(elementId);
+                    if (!el) return;
+
+                    if (isHeadOrSub) {
+                        const maxLimit = elementId === 'ui-head' ? 6 : 18;
+                        const busyCount = maxLimit - totalFreeCount;
+                        
+                        if (totalFreeCount <= 0) {
+                            el.textContent = `${maxLimit} / ${maxLimit} ЗАНЯТО`;
+                            el.className = 'rank-status status-full';
+                        } else {
+                            el.textContent = `${busyCount} / ${maxLimit} СВОБОДНО`;
+                            el.className = 'rank-status status-open';
+                        }
+                    } else if (lineText) {
+                        const parts = lineText.split(':');
+                        if (parts.length > 1) {
+                            const info = parts[1].trim(); 
+                            
+                            if (info.includes('МЕСТ НЕТ')) {
+                                const numbers = info.match(/\d+\s*\/\s*\d+/);
+                                el.textContent = (numbers ? numbers[0] : "3 / 3") + " ЗАНЯТО";
+                                el.className = 'rank-status status-full';
+                            } else {
+                                const numbers = info.match(/\d+\s*\/\s*\d+/);
+                                el.textContent = (numbers ? numbers[0] : "0 / 7") + " СВОБОДНО";
+                                el.className = 'rank-status status-open';
+                            }
+                        }
+                    } else {
+                        el.textContent = "ДАННЫЕ НЕ НАЙДЕНЫ";
+                        el.className = 'rank-status status-full';
+                    }
+                }
+
+                applyUI('ui-deputy', deputyLine);
+                applyUI('ui-inspector', inspectorLine);
+                applyUI('ui-head', '', true, headTotalFree);
+                applyUI('ui-subhead', '', true, subheadTotalFree);
+
+            } catch (error) {
+                console.error('Ошибка чтения saspareport.txt:', error);
+                document.getElementById('ui-deputy').textContent = 'ОШИБКА ЗАГРУЗКИ';
+                document.getElementById('ui-inspector').textContent = 'ОШИБКА ЗАГРУЗКИ';
+                document.getElementById('ui-head').textContent = 'ОШИБКА ЗАГРУЗКИ';
+                document.getElementById('ui-subhead').textContent = 'ОШИБКА ЗАГРУЗКИ';
+            }
+        }
+
+        loadQuotasFromReport();
+
+        // === ЛОГИКА КАСТОМНОГО ВЫПАДАЮЩЕГО СПИСКА ===
         document.querySelector('.custom-select-wrapper').addEventListener('click', function() {
             this.querySelector('.custom-select').classList.toggle('open');
         });
@@ -882,9 +985,10 @@
             }
         });
 
-      
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzzYfiv7IkDwyAO4o-sBZ-9bbjT0ewQQsXZpKXxW-L5ruKKHJFYel4bzQbog_5uUr7GvQ/exec'; 
+        // 🚨🚨 ВСТАВЬ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT 🚨🚨
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyDujucmVRZOnDq6GCKKW2GQtxVJycBWu_pjUN38N9HrZ7Hy_czIiOXMphEs9JqC1IEiA/exec'; 
 
+        // === ОТПРАВКА ЗАЯВКИ ===
         const form = document.getElementById('apply-form');
         const btn = document.getElementById('submit-btn');
         const messageBox = document.getElementById('form-message');
@@ -909,7 +1013,6 @@
                 finalTimezone = "Другой: " + customInput.value.trim();
             }
 
-          
             const criminalVal = document.querySelector('input[name="criminal"]:checked');
             if (!criminalVal) {
                 alert("Пожалуйста, укажите наличие судимостей!");
@@ -919,7 +1022,6 @@
             btn.disabled = true;
             btn.innerText = 'Отправка...';
 
-          
             const formData = new URLSearchParams();
             formData.append('playerName', document.getElementById('playerName').value);
             formData.append('discordId', document.getElementById('discordId').value);
@@ -943,7 +1045,6 @@
                 btn.style.display = 'none';
                 form.reset();
                 
-                // Сброс кастомного селекта
                 document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
                 document.querySelector('.custom-select-trigger').classList.remove('selected');
                 const selectedOpt = document.querySelector('.custom-option.selected-opt');
@@ -965,6 +1066,56 @@
                 btn.disabled = false;
                 btn.innerText = 'Отправить заявку';
             });
+        });
+
+        // === ПРОВЕРКА СТАТУСА ЗАЯВКИ ===
+        const checkBtn = document.getElementById('check-status-btn');
+        const checkInput = document.getElementById('check-static-id');
+        const statusResult = document.getElementById('status-result');
+
+        checkBtn.addEventListener('click', () => {
+            const staticId = checkInput.value.trim();
+            if (!staticId) {
+                alert('Пожалуйста, введите ваш Static ID!');
+                return;
+            }
+
+            checkBtn.disabled = true;
+            checkBtn.innerText = 'Поиск...';
+            statusResult.style.display = 'none';
+
+            fetch(scriptURL + '?staticId=' + staticId)
+                .then(response => response.json())
+                .then(data => {
+                    checkBtn.disabled = false;
+                    checkBtn.innerText = 'Узнать статус';
+                    statusResult.style.display = 'block';
+
+                    if (data.found) {
+                        let statusColorClass = 'msg-success'; 
+                        
+                        // Логика раскраски ответа
+                        const statusLower = data.status.toLowerCase();
+                        if (statusLower.includes('отклон') || statusLower.includes('отказ')) {
+                            statusColorClass = 'msg-error';
+                        } else if (statusLower.includes('рассмотрени') || statusLower.includes('ожида')) {
+                            statusColorClass = 'msg-warning';
+                        }
+
+                        statusResult.className = 'form-message ' + statusColorClass;
+                        statusResult.innerHTML = `Статус вашей заявки: <b>${data.status}</b>`;
+                    } else {
+                        statusResult.className = 'form-message msg-error';
+                        statusResult.innerText = 'Заявка с таким Static ID не найдена.';
+                    }
+                })
+                .catch(error => {
+                    checkBtn.disabled = false;
+                    checkBtn.innerText = 'Узнать статус';
+                    statusResult.className = 'form-message msg-error';
+                    statusResult.innerText = '❌ Ошибка связи с сервером.';
+                    statusResult.style.display = 'block';
+                });
         });
     </script>
 </body>
