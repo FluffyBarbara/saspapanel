@@ -222,11 +222,6 @@
             font-weight: 700;
             color: #fff;
         }
-        
-        .highlight-text {
-            color: var(--red);
-            text-shadow: 0 0 10px var(--red-glow);
-        }
 
         /* Прогресс бар */
         .progress-section, .ranks-section, .application-section {
@@ -645,10 +640,6 @@
                     <span class="info-label">Фракция</span>
                     <span class="info-value">SASPA</span>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Место сбора состава</span>
-                    <span class="info-value highlight-text">📍 Киностудия</span>
-                </div>
             </div>
 
             <!-- Статистика срока -->
@@ -706,7 +697,7 @@
             <!-- БЛОК ЗАЯВОК -->
             <div class="application-section">
                 <div class="section-title">Заявка на Старший Состав</div>
-                <form id="apply-form" class="apply-form">
+                <form id="apply-form" class="apply-form" name="submit-to-google-sheet">
                     
                     <div class="form-group">
                         <label>Имя Фамилия (Nick_Name)</label>
@@ -727,6 +718,8 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Часовой пояс</label>
+                            
+                            <!-- КАСТОМНЫЙ DROPDOWN -->
                             <div class="custom-select-wrapper">
                                 <div class="custom-select">
                                     <div class="custom-select-trigger">
@@ -752,6 +745,7 @@
                             </div>
                             <input type="text" id="hidden-tz" name="timezone" class="hidden-input" required>
                             
+                            <!-- Дополнительная плашка для "Другой" -->
                             <div id="other-tz-container">
                                 <label style="margin-bottom: 0.5rem; display: block; margin-top: 0.5rem;">Ваш часовой пояс</label>
                                 <input type="text" id="custom-tz-input" placeholder="Например: UTC+10">
@@ -994,9 +988,9 @@
             }
         });
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyQLhIyyrFc_BTHAmRIlB-FPl7-l7QUGVJeUfztk1FQuoztYq3uNdp3ml4tcgdjyVYdGA/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycby-PBrbXQx-h9J2z2CHEwSIayvCfv1yFyJO8VgyfK5HH6SejoOS7vQQDJFjh7xYqqM6bg/exec'; 
 
-        // === ОТПРАВКА ЗАЯВКИ С ПРОВЕРКОЙ НА ДУБЛИКАТ ===
+        // === ОТПРАВКА ЗАЯВКИ (БЕЗОПАСНАЯ ЛОГИКА С ПРОВЕРКОЙ ID) ===
         const form = document.getElementById('apply-form');
         const btn = document.getElementById('submit-btn');
         const messageBox = document.getElementById('form-message');
@@ -1032,41 +1026,42 @@
             btn.innerText = 'Проверка базы данных...';
             messageBox.style.display = 'none';
 
-            // 1. ПРОВЕРКА НА ДУБЛИКАТ: Ищем Static ID перед отправкой
+            // ШАГ 1: Проверяем, нет ли уже такого Static ID
             fetch(scriptURL + '?staticId=' + staticIdVal)
                 .then(response => {
-                    if (!response.ok) throw new Error('Ошибка сети при проверке');
+                    if (!response.ok) throw new Error('Network error');
                     return response.json();
                 })
                 .then(data => {
                     if (data.found) {
-                        // Static ID найден! Блокируем отправку.
+                        // Если ID найден, отменяем отправку
                         messageBox.className = 'form-message msg-error';
                         messageBox.innerText = '❌ Заявка с таким Static ID уже существует в базе!';
                         messageBox.style.display = 'block';
                         btn.disabled = false;
                         btn.innerText = 'Отправить заявку';
                     } else {
-                        // 2. ОТПРАВКА ДАННЫХ В НАДЕЖНОМ ФОРМАТЕ URLSearchParams
+                        // ШАГ 2: Собираем данные в FormData для надежной отправки POST
                         btn.innerText = 'Отправка заявки...';
                         
-                        const params = new URLSearchParams();
-                        params.append('playerName', document.getElementById('playerName').value);
-                        params.append('discordId', document.getElementById('discordId').value);
-                        params.append('staticId', document.getElementById('staticId').value);
-                        params.append('timezone', finalTimezone);
-                        params.append('online', document.getElementById('online').value);
-                        params.append('primetime', document.getElementById('primetime').value);
-                        params.append('lawKnowledge', document.getElementById('lawKnowledge').value);
-                        params.append('criminal', criminalVal.value);
-                        params.append('reason', document.getElementById('reason').value);
+                        const formData = new FormData();
+                        formData.append('playerName', document.getElementById('playerName').value);
+                        formData.append('discordId', document.getElementById('discordId').value);
+                        formData.append('staticId', staticIdVal);
+                        formData.append('timezone', finalTimezone);
+                        formData.append('online', document.getElementById('online').value);
+                        formData.append('primetime', document.getElementById('primetime').value);
+                        formData.append('lawKnowledge', document.getElementById('lawKnowledge').value);
+                        formData.append('criminal', criminalVal.value);
+                        formData.append('reason', document.getElementById('reason').value);
 
                         fetch(scriptURL, { 
                             method: 'POST', 
-                            mode: 'no-cors',
-                            body: params
+                            mode: 'no-cors', // Важно для обхода политики браузеров (GitHub Pages)
+                            body: formData
                         })
                         .then(() => {
+                            // no-cors всегда возвращает пустой (но успешный) ответ
                             messageBox.className = 'form-message msg-success';
                             messageBox.innerText = '✅ Заявка на Старший Состав успешно отправлена!';
                             messageBox.style.display = 'block';
@@ -1088,31 +1083,18 @@
                             }, 5000);
                         })
                         .catch(error => {
-                            messageBox.className = 'form-message msg-success';
-                            messageBox.innerText = '✅ Заявка успешно отправлена! Ожидайте обновления статуса.';
+                            messageBox.className = 'form-message msg-error';
+                            messageBox.innerText = '❌ Произошла ошибка отправки.';
                             messageBox.style.display = 'block';
-                            btn.style.display = 'none';
-                            form.reset();
-                            
-                            document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
-                            document.querySelector('.custom-select-trigger').classList.remove('selected');
-                            const selectedOpt = document.querySelector('.custom-option.selected-opt');
-                            if(selectedOpt) selectedOpt.classList.remove('selected-opt');
-                            hiddenTz.value = '';
-                            document.getElementById('other-tz-container').style.display = 'none';
-
-                            setTimeout(() => {
-                                btn.style.display = 'block';
-                                btn.disabled = false;
-                                btn.innerText = 'Отправить заявку';
-                                messageBox.style.display = 'none';
-                            }, 5000);
+                            btn.disabled = false;
+                            btn.innerText = 'Отправить заявку';
                         });
                     }
                 })
                 .catch(error => {
+                    // Если GET-запрос сломался, отправку не блочим, но выводим системное сообщение
                     messageBox.className = 'form-message msg-error';
-                    messageBox.innerText = '❌ Ошибка проверки базы данных. Проверьте ссылку скрипта.';
+                    messageBox.innerText = '❌ Ошибка проверки базы. Проверьте развертывание скрипта (см. инструкцию).';
                     messageBox.style.display = 'block';
                     btn.disabled = false;
                     btn.innerText = 'Отправить заявку';
@@ -1167,7 +1149,7 @@
                     checkBtn.disabled = false;
                     checkBtn.innerText = 'Узнать статус';
                     statusResult.className = 'form-message msg-error';
-                    statusResult.innerText = '❌ Ошибка связи с сервером. Попробуйте позже.';
+                    statusResult.innerText = '❌ Ошибка связи с сервером. Проверьте настройки развертывания.';
                     statusResult.style.display = 'block';
                 });
         });
