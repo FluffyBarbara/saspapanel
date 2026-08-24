@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yuma Takimura - Leader Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,500;0,700;0,900;1,400&display=swap');
+
+        :root {
+            --red: #e81c25;
+            --red-glow: rgba(232, 28, 37, 0.6);
+            --dark: #050505;
+            --glass-bg: rgba(10, 10, 12, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-image: url('0995399c-e20c-4319-8d64-68191e534ede.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 3rem 2rem;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.95) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            gap: 2.5rem;
+            max-width: 1250px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 20px rgba(255,255,255,0.02);
+            animation: fadeIn 1s ease-out;
+        }
+
+        /* --- ЛЕВЫЙ БЛОК: ПРОФИЛЬ --- */
+        .profile {
+            flex: 1;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: sticky;
+            top: 3rem;
+        }
+
+        .profile-img-container {
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(232, 28, 37, 0.2);
+            position: relative;
+        }
+
+        .profile-img-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        }
+
+        .profile-img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .profile-img-container:hover .profile-img {
+            transform: scale(1.05);
+        }
+
+        .profile-info {
+            text-align: center;
+        }
+
+        .profile-info h1 {
+            font-size: 2.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #ffffff, #aaaaaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.3rem;
+            text-shadow: 0px 5px 15px rgba(0,0,0,0.8);
+        }
+
+        .profile-info h2 {
+            font-size: 1.2rem;
+            color: var(--red);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px var(--red-glow);
+        }
+
+        /* --- ПРАВЫЙ БЛОК: ДАШБОРД --- */
+        .dashboard {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: var(--red);
+            border-radius: 4px;
+            box-shadow: 0 0 10px var(--red);
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(232, 28, 37, 0.4);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 15px rgba(232, 28, 37, 0.1);
+        }
+
+        .stat-card .value {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--red);
+            margin: 0.2rem 0;
+            text-shadow: 0 0 25px var(--red-glow);
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        /* Оперативная сводка */
+        .info-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: flex-start;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Прогресс бар */
+        .progress-section, .ranks-section, .application-section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            position: relative;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #590000, var(--red));
+            width: 0%;
+            border-radius: 10px;
+            transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 0 20px var(--red-glow);
+        }
+
+        /* Список рангов */
+        .rank-list {
+            list-style: none;
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .rank-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .rank-name {
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .rank-status {
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .status-open {
+            background: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .status-full {
+            background: rgba(232, 28, 37, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(232, 28, 37, 0.2);
+        }
+
+        /* --- ФОРМА ЗАЯВОК --- */
+        .apply-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1.2rem;
+            align-items: flex-start;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus,
+        .custom-select-trigger:focus {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--red);
+            box-shadow: 0 0 15px rgba(232, 28, 37, 0.2);
+        }
+
+        .form-group input::placeholder, 
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* --- КАСТОМНЫЙ ВЫПАДАЮЩИЙ СПИСОК (DROPDOWN) --- */
+        .custom-select-wrapper {
+            position: relative;
+            user-select: none;
+            width: 100%;
+        }
+
+        .custom-select {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-select-trigger {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-select-trigger.selected {
+            color: #fff;
+        }
+
+        .custom-select.open .custom-select-trigger {
+            border-color: var(--red);
+            box-shadow: 0 0 15px rgba(232, 28, 37, 0.2);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .arrow {
+            position: relative;
+            height: 10px;
+            width: 10px;
+        }
+
+        .arrow::before, .arrow::after {
+            content: "";
+            position: absolute;
+            bottom: 0px;
+            width: 0.15rem;
+            height: 100%;
+            transition: all 0.3s ease;
+            background-color: var(--text-muted);
+        }
+
+        .arrow::before {
+            left: -3px;
+            transform: rotate(-45deg);
+        }
+
+        .arrow::after {
+            left: 3px;
+            transform: rotate(45deg);
+        }
+
+        .custom-select.open .arrow::before {
+            transform: rotate(45deg);
+        }
+
+        .custom-select.open .arrow::after {
+            transform: rotate(-45deg);
+        }
+
+        .custom-options {
+            position: absolute;
+            display: block;
+            top: 100%;
+            left: 0;
+            right: 0;
+            border: 1px solid var(--red);
+            border-top: 0;
+            background: #111116;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 10;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .custom-select.open .custom-options {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+        }
+
+        .custom-option {
+            position: relative;
+            display: block;
+            padding: 1rem 1.2rem;
+            font-size: 0.95rem;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .custom-option:last-child {
+            border-bottom: none;
+        }
+
+        .custom-option:hover {
+            background: rgba(232, 28, 37, 0.1);
+            color: var(--red);
+            padding-left: 1.5rem;
+        }
+        
+        .custom-option.selected-opt {
+            background: rgba(232, 28, 37, 0.15);
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .custom-options::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-options::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 12px 0;
+        }
+        .custom-options::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .custom-options::-webkit-scrollbar-thumb:hover {
+            background: var(--red);
+        }
+        
+        .hidden-input {
+            display: none;
+        }
+
+        /* Поле ввода для "Другой часовой пояс" */
+        #other-tz-container {
+            display: none;
+            margin-top: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Стили для радио кнопок */
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        
+        .radio-label input[type="radio"] {
+            width: auto;
+            accent-color: var(--red);
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #a70000, var(--red));
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(232, 28, 37, 0.3);
+            margin-top: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(232, 28, 37, 0.5);
+            background: linear-gradient(45deg, var(--red), #ff3b45);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .form-message {
+            display: none;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 1rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .msg-success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #2ecc71;
+        }
+
+        .msg-error {
+            background: rgba(232, 28, 37, 0.1);
+            border: 1px solid rgba(232, 28, 37, 0.3);
+            color: var(--red);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.97) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 960px) {
+            body { padding: 1rem; }
+            .container { flex-direction: column; padding: 2rem; }
+            .profile { max-width: 100%; align-items: center; position: static; }
+            .profile-img-container { max-width: 350px; }
+            .info-panel { flex-direction: column; gap: 1rem; text-align: center; }
+            .form-row { flex-direction: column; }
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .rank-item { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+
+    <div class="container">
+        <!-- ЛЕВЫЙ БЛОК -->
+        <div class="profile">
+            <div class="profile-img-container">
+                <img class="profile-img" src="photoosnova.png" alt="Yuma Takimura">
+            </div>
+            <div class="profile-info">
+                <h1>Yuma Takimura</h1>
+                <h2>Лидер Фракции</h2>
+            </div>
+        </div>
+
+        <!-- ПРАВЫЙ БЛОК -->
+        <div class="dashboard">
+
+            <!-- Информационная панель -->
+            <div class="info-panel">
+                <div class="info-item">
+                    <span class="info-label">Сервер</span>
+                    <span class="info-value">🌈 RAINBOW</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Фракция</span>
+                    <span class="info-value">SASPA</span>
+                </div>
+            </div>
+
+            <!-- Статистика срока -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Дней на посту</div>
+                    <div class="value" id="days-passed">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Осталось дней</div>
+                    <div class="value" id="days-left">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Всего дней</div>
+                    <div class="value" id="total-days">31</div>
+                </div>
+            </div>
+
+            <!-- Прогресс лидерства -->
+            <div class="progress-section">
+                <div class="section-title">Прогресс срока</div>
+                <div class="progress-header">
+                    <span id="start-date" style="color: var(--text-muted);">Начало: --</span>
+                    <span id="percent-text" style="font-weight: 900; color: #fff; font-size: 1.1rem; text-shadow: 0 0 10px var(--red-glow);">0%</span>
+                    <span id="end-date" style="color: var(--text-muted);">Конец: --</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Вакантные должности -->
+            <div class="ranks-section">
+                <div class="section-title">Вакантные должности (Слоты)</div>
+                <ul class="rank-list">
+                    <li class="rank-item">
+                        <span class="rank-name">Заместитель Начальника</span>
+                        <span id="ui-deputy" class="rank-status status-open">Загрузка...</span>
+                    </li>
+                    <li class="rank-item">
+                        <span class="rank-name">Инспектор</span>
+                        <span id="ui-inspector" class="rank-status status-open">Загрузка...</span>
+                    </li>
+                    <li class="rank-item">
+                        <span class="rank-name">Начальники Отделов (Head)</span>
+                        <span id="ui-head" class="rank-status status-open">Загрузка...</span>
+                    </li>
+                    <li class="rank-item">
+                        <span class="rank-name">Заместители Нач. Отдела (D. Head)</span>
+                        <span id="ui-subhead" class="rank-status status-open">Загрузка...</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- БЛОК ЗАЯВОК -->
+            <div class="application-section">
+                <div class="section-title">Заявка на Старший Состав</div>
+                <form id="apply-form" class="apply-form" name="submit-to-google-sheet">
+                    
+                    <div class="form-group">
+                        <label>Имя Фамилия (Nick_Name)</label>
+                        <input type="text" name="playerName" placeholder="Например: Yuma Takimura" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ваш Discord</label>
+                            <input type="text" name="discordId" placeholder="Например: user#1234" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ваш Static ID</label>
+                            <input type="number" name="staticId" placeholder="Например: 12345" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Часовой пояс</label>
+                            
+                            <!-- КАСТОМНЫЙ DROPDOWN -->
+                            <div class="custom-select-wrapper">
+                                <div class="custom-select">
+                                    <div class="custom-select-trigger">
+                                        <span id="tz-text">Выберите часовой пояс...</span>
+                                        <div class="arrow"></div>
+                                    </div>
+                                    <div class="custom-options">
+                                        <span class="custom-option" data-value="-2 от МСК">-2 от МСК</span>
+                                        <span class="custom-option" data-value="-1 от МСК">-1 от МСК (Калининград)</span>
+                                        <span class="custom-option" data-value="По МСК">По МСК (Москва, Питер)</span>
+                                        <span class="custom-option" data-value="+1 от МСК">+1 от МСК (Самара)</span>
+                                        <span class="custom-option" data-value="+2 от МСК">+2 от МСК (Екатеринбург)</span>
+                                        <span class="custom-option" data-value="+3 от МСК">+3 от МСК (Омск)</span>
+                                        <span class="custom-option" data-value="+4 от МСК">+4 от МСК (Красноярск)</span>
+                                        <span class="custom-option" data-value="+5 от МСК">+5 от МСК (Иркутск)</span>
+                                        <span class="custom-option" data-value="+6 от МСК">+6 от МСК (Якутск)</span>
+                                        <span class="custom-option" data-value="+7 от МСК">+7 от МСК (Владивосток)</span>
+                                        <span class="custom-option" data-value="+8 от МСК">+8 от МСК (Сахалин)</span>
+                                        <span class="custom-option" data-value="+9 от МСК">+9 от МСК (Камчатка)</span>
+                                        <span class="custom-option" data-value="Другой">Другой</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Скрытый инпут, который отправится в гугл таблицу -->
+                            <input type="text" name="timezone" id="hidden-tz" class="hidden-input" required>
+                            
+                            <!-- Дополнительная плашка для "Другой" -->
+                            <div id="other-tz-container">
+                                <label style="margin-bottom: 0.5rem; display: block; margin-top: 0.5rem;">Ваш часовой пояс</label>
+                                <input type="text" id="custom-tz-input" placeholder="Например: UTC+10">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Средний онлайн (в часах)</label>
+                            <input type="text" name="online" placeholder="Например: 4-6 часов" required>
+                        </div>
+                    </div>
+
+                    <!-- НОВЫЕ ПОЛЯ -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Время прайм-тайма</label>
+                            <input type="text" name="primetime" placeholder="Например: с 18:00 до 22:00" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Знание законодательства (от 1 до 10)</label>
+                            <input type="number" name="lawKnowledge" min="1" max="10" placeholder="Например: 8" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Наличие судимостей персонажа</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="criminal" value="Да" required> Да
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="criminal" value="Нет" required> Нет
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Опыт руководства и цель вступления</label>
+                        <textarea name="reason" placeholder="Кратко опишите ваш опыт и почему вы подаете заявку на старший состав" required></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submit-btn">Отправить заявку</button>
+                    <div id="form-message" class="form-message"></div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // === НАСТРОЙКИ СРОКА ===
+        const termStart = new Date('2026-08-13T00:00:00'); 
+        const totalDaysCount = 31; 
+
+        const termEnd = new Date(termStart.getTime() + totalDaysCount * 24 * 60 * 60 * 1000); 
+        const today = new Date();
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+
+        document.getElementById('start-date').innerText = 'Начало: ' + termStart.toLocaleDateString('ru-RU', options);
+        document.getElementById('end-date').innerText = 'Конец: ' + termEnd.toLocaleDateString('ru-RU', options);
+
+        const msPerDay = 1000 * 60 * 60 * 24;
+
+        let daysPassed = Math.floor((today - termStart) / msPerDay);
+        if (daysPassed < 0) daysPassed = 0;
+        if (daysPassed > totalDaysCount) daysPassed = totalDaysCount;
+
+        let daysLeft = totalDaysCount - daysPassed;
+
+        document.getElementById('total-days').innerText = totalDaysCount;
+
+        function animateValue(id, start, end, duration) {
+            let obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        animateValue("days-passed", 0, daysPassed, 1500);
+        animateValue("days-left", 0, daysLeft, 1500);
+
+        let progressPercent = (daysPassed / totalDaysCount) * 100;
+
+        setTimeout(() => {
+            document.getElementById('progress-fill').style.width = progressPercent + '%';
+
+            let percentObj = document.getElementById('percent-text');
+            let startTimestamp = null;
+            const duration = 1500;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                percentObj.innerHTML = Math.floor(progress * progressPercent) + '%';
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }, 500);
+        
+        // === СИНХРОНИЗАЦИЯ КВОТ С ТЕРМИНАЛОМ (indexsaspa.html) ===
+        function syncQuotasWithTerminal() {
+            // Лимиты из терминала SASPA
+            const MAX_DEPUTY = 3;
+            const MAX_INSPECTOR = 7;
+            const MAX_HEAD = 6;     // 6 отделов по 1
+            const MAX_SUBHEAD = 18; // 6 отделов по 3
+
+            try {
+                // Читаем базу данных напрямую из памяти браузера
+                const dbString = localStorage.getItem('saspaDatabaseV1');
+                const roster = dbString ? JSON.parse(dbString) : [];
+
+                let countDeputy = 0;
+                let countInspector = 0;
+                let countHead = 0;
+                let countSubHead = 0;
+
+                const saspaDepts = ['A', 'SPD', 'HRD', 'ED', 'CRUSH', 'USMS'];
+
+                roster.forEach(agent => {
+                    // Очищаем название роли (убираем ранг в квадратных скобках, если есть)
+                    const cleanDept = (agent.department || '').replace(/\[\d+\]/g, '').trim();
+                    if (cleanDept === 'Заместитель Начальника Тюрьмы') countDeputy++;
+                    if (cleanDept === 'Инспектор') countInspector++;
+
+                    let rankStr = agent.rank || '';
+                    let rLower = rankStr.toLowerCase();
+                    
+                    // Функция из терминала для определения отдела сотрудника
+                    let extDept = 'БЕЗ ОТДЕЛА';
+                    if (!rLower.includes('free') && !rLower.includes('свободен')) {
+                        for (let d of saspaDepts) {
+                            if (new RegExp(`\\b${d}\\b`, 'i').test(rankStr)) {
+                                extDept = d; 
+                                break;
+                            }
+                        }
+                    }
+
+                    // Если сотрудник в одном из 6 отделов, проверяем его должность
+                    if (saspaDepts.includes(extDept)) {
+                        if (rLower.includes('head') && !rLower.includes('d. head') && !rLower.includes('d.head') && !rLower.includes('зам')) {
+                            countHead++;
+                        } else if (rLower.includes('d. head') || rLower.includes('d.head') || rLower.includes('зам')) {
+                            countSubHead++;
+                        }
+                    }
+                });
+
+                function updateUI(id, current, max) {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    
+                    if (current >= max) {
+                        el.textContent = `${current} / ${max} ЗАНЯТО`;
+                        el.className = 'rank-status status-full';
+                    } else {
+                        el.textContent = `${current} / ${max} СВОБОДНО`;
+                        el.className = 'rank-status status-open';
+                    }
+                }
+
+                updateUI('ui-deputy', countDeputy, MAX_DEPUTY);
+                updateUI('ui-inspector', countInspector, MAX_INSPECTOR);
+                updateUI('ui-head', countHead, MAX_HEAD);
+                updateUI('ui-subhead', countSubHead, MAX_SUBHEAD);
+                
+            } catch (error) {
+                console.error('Ошибка синхронизации с Терминалом:', error);
+            }
+        }
+
+        // Запуск синхронизации при загрузке страницы
+        syncQuotasWithTerminal();
+
+        // Слушаем изменения в базе. Если ты внесешь сотрудника в Терминале, слоты обновятся мгновенно!
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'saspaDatabaseV1') {
+                syncQuotasWithTerminal();
+            }
+        });
+
+        // === ЛОГИКА КАСТОМНОГО ВЫПАДАЮЩЕГО СПИСКА ===
+        document.querySelector('.custom-select-wrapper').addEventListener('click', function() {
+            this.querySelector('.custom-select').classList.toggle('open');
+        });
+
+        for (const option of document.querySelectorAll(".custom-option")) {
+            option.addEventListener('click', function() {
+                if (!this.classList.contains('selected-opt')) {
+                    const parent = this.parentNode;
+                    const prevSelected = parent.querySelector('.custom-option.selected-opt');
+                    if (prevSelected) {
+                        prevSelected.classList.remove('selected-opt');
+                    }
+                    this.classList.add('selected-opt');
+                    
+                    const trigger = this.closest('.custom-select').querySelector('.custom-select-trigger span');
+                    trigger.textContent = this.textContent;
+                    this.closest('.custom-select').querySelector('.custom-select-trigger').classList.add('selected');
+                    
+                    const val = this.getAttribute('data-value');
+                    document.getElementById('hidden-tz').value = val;
+                    const otherContainer = document.getElementById('other-tz-container');
+                    const customInput = document.getElementById('custom-tz-input');
+                    
+                    if (val === 'Другой') {
+                        otherContainer.style.display = 'block';
+                        customInput.setAttribute('required', 'required');
+                    } else {
+                        otherContainer.style.display = 'none';
+                        customInput.removeAttribute('required');
+                        customInput.value = '';
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('click', function(e) {
+            const select = document.querySelector('.custom-select');
+            if (!select.contains(e.target)) {
+                select.classList.remove('open');
+            }
+        });
+
+        // === ОТПРАВКА ДАННЫХ В GOOGLE ТАБЛИЦУ ===
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRcSKrqQaxYBR6t4u68B8qzJKJwQBVBoy8sNfD4g7wGd1hgn3ZgUknQ7zVtBFw6px9oA/exec'; 
+
+        const form = document.forms['submit-to-google-sheet'];
+        const btn = document.getElementById('submit-btn');
+        const messageBox = document.getElementById('form-message');
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            
+            const hiddenTz = document.getElementById('hidden-tz');
+            const customInput = document.getElementById('custom-tz-input');
+
+            if (!hiddenTz.value) {
+                alert("Пожалуйста, выберите часовой пояс!");
+                return;
+            }
+
+            let originalTzValue = hiddenTz.value;
+            if (originalTzValue === 'Другой') {
+                if (!customInput.value.trim()) {
+                    alert("Пожалуйста, введите ваш часовой пояс!");
+                    return;
+                }
+                hiddenTz.value = "Другой: " + customInput.value.trim();
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Отправка...';
+
+            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+                .then(response => {
+                    messageBox.className = 'form-message msg-success';
+                    messageBox.innerText = '✅ Заявка на Старший Состав успешно отправлена!';
+                    messageBox.style.display = 'block';
+                    btn.style.display = 'none';
+                    form.reset();
+                    
+                    document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
+                    document.querySelector('.custom-select-trigger').classList.remove('selected');
+                    const selectedOpt = document.querySelector('.custom-option.selected-opt');
+                    if(selectedOpt) selectedOpt.classList.remove('selected-opt');
+                    hiddenTz.value = '';
+                    
+                    document.getElementById('other-tz-container').style.display = 'none';
+                    customInput.removeAttribute('required');
+
+                    setTimeout(() => {
+                        btn.style.display = 'block';
+                        btn.disabled = false;
+                        btn.innerText = 'Отправить заявку';
+                        messageBox.style.display = 'none';
+                    }, 5000);
+                })
+                .catch(error => {
+                    if (originalTzValue === 'Другой') {
+                        hiddenTz.value = 'Другой';
+                    }
+                    messageBox.className = 'form-message msg-error';
+                    messageBox.innerText = '❌ Произошла ошибка. Проверьте ссылку скрипта.';
+                    messageBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = 'Отправить заявку';
+                });
+        });
+    </script>
+</body>
+</html>

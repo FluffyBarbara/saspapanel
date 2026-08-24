@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SASPA | Secure Terminal OS by Fluffy Barbara</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Libre+Barcode+39+Text&display=swap');
+
+        :root {
+            --bg-base: #020617;
+            --saspa-accent: #0ea5e9;
+            --saspa-glow: rgba(14, 165, 233, 0.5);
+            --saspa-dark: #0369a1;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --text-tech: #38bdf8;
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.5);
+            --warning: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.5);
+            --success: #10b981;
+            --panel-bg: rgba(15, 23, 42, 0.75);
+            --border-tech: 1px solid rgba(14, 165, 233, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(14, 165, 233, 0.02) 51%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .top-bar {
+            background: rgba(2, 6, 23, 0.9);
+            border-bottom: 2px solid var(--saspa-dark);
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-tech);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .status-blink {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 8px var(--success);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .container {
+            flex: 1;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .tech-panel {
+            background: var(--panel-bg);
+            border: var(--border-tech);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+            position: relative;
+            padding: 1.5rem;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.5);
+            align-self: start;
+        }
+
+        .tech-panel::before, .tech-panel::after {
+            content: ''; position: absolute; width: 15px; height: 15px; border: 2px solid var(--saspa-accent); transition: all 0.3s;
+        }
+        .tech-panel::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .tech-panel::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 1.5rem;
+        }
+        .brand h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            color: #fff;
+            text-shadow: 0 0 15px var(--saspa-glow);
+            margin-bottom: 0.5rem;
+        }
+        .brand p {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--saspa-accent);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label {
+            display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-tech); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        input[type="text"], select {
+            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(14, 165, 233, 0.2); color: #fff; padding: 0.8rem 1rem; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; outline: none; transition: all 0.3s; border-left: 3px solid var(--saspa-accent);
+            text-overflow: ellipsis;
+        }
+        input[type="text"]:focus, select:focus {
+            background: rgba(14, 165, 233, 0.05); border-color: var(--saspa-accent); box-shadow: 0 0 15px var(--saspa-glow);
+        }
+        input[type="text"]::placeholder { color: rgba(255,255,255,0.2); }
+        
+        option, optgroup { background: var(--bg-base); color: #fff; font-family: 'Rajdhani', sans-serif; }
+        optgroup { color: var(--saspa-accent); font-weight: 700; font-style: normal; }
+
+        .btn-submit {
+            width: 100%; background: transparent; border: 1px solid var(--saspa-accent); color: var(--saspa-accent); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; padding: 1rem; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; position: relative; overflow: hidden; transition: 0.3s; margin-top: 1rem;
+        }
+        .btn-submit:hover { background: var(--saspa-accent); color: #fff; box-shadow: 0 0 20px var(--saspa-glow); }
+
+        .btn-cancel {
+            display: none; border-color: var(--warning); color: var(--warning); margin-top: 0.5rem;
+        }
+        .btn-cancel:hover { background: var(--warning); color: #fff; box-shadow: 0 0 20px var(--warning-glow); }
+
+        .data-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            padding-top: 1rem;
+        }
+        .btn-action {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.6rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            border-radius: 4px;
+        }
+        .btn-action:hover {
+            border-color: var(--saspa-accent);
+            color: var(--saspa-accent);
+            background: rgba(14, 165, 233, 0.05);
+        }
+
+        .toolbar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem;
+        }
+        .search-box { flex: 1; position: relative; }
+        .search-box input { border-left: none; border-bottom: 2px solid var(--saspa-accent); background: transparent; padding-left: 2rem; font-family: 'JetBrains Mono', monospace;}
+        .search-box::before {
+            content: '⚲'; position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--saspa-accent); font-size: 1.2rem;
+        }
+
+        .stats-box {
+            display: flex; gap: 1.5rem; font-family: 'JetBrains Mono', monospace;
+        }
+        .stat { text-align: right; }
+        .stat-val { font-size: 1.5rem; color: var(--saspa-accent); font-weight: bold; text-shadow: 0 0 10px var(--saspa-glow); }
+        .stat-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+
+        .roster-vacancies {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+        .vacancy-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--saspa-accent);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px dashed rgba(14, 165, 233, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .vacancy-summary {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), transparent);
+            border-left: 4px solid var(--success);
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0 4px 4px 0;
+        }
+        .vacancy-summary span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+        }
+
+        .vacancy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .vacancy-card {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.8rem;
+            border-left: 3px solid var(--success);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .vacancy-card:hover { background: rgba(14, 165, 233, 0.05); }
+        .vacancy-card.full {
+            border-left-color: var(--danger);
+        }
+        .vacancy-card .v-role { color: #fff; margin-bottom: 0.3rem; font-weight: bold;}
+        .vacancy-card .v-count { color: var(--text-muted); font-size: 0.75rem;}
+        .vacancy-card .v-free { color: var(--success); font-size: 0.75rem; margin-top: 0.2rem;}
+        .vacancy-card.full .v-free { color: var(--danger); }
+
+        #rosterGrid {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .role-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .role-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--saspa-accent);
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-bottom: 1px solid rgba(14, 165, 233, 0.3);
+            padding-bottom: 0.5rem;
+            text-shadow: 0 0 10px var(--saspa-glow);
+            display: flex;
+            align-items: center;
+        }
+
+        .role-title::before {
+            content: '>>';
+            margin-right: 10px;
+            color: var(--text-tech);
+            font-size: 1.2rem;
+        }
+
+        .dept-sub-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .dept-sub-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--saspa-accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-left: 3px solid var(--saspa-accent);
+            padding-left: 0.8rem;
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.1), transparent);
+            padding-top: 0.4rem;
+            padding-bottom: 0.4rem;
+            font-weight: bold;
+        }
+
+        .role-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); 
+            gap: 1.5rem; 
+            align-items: flex-start;
+        }
+
+        .dossier-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
+            border: 1px solid rgba(14, 165, 233, 0.15);
+            border-top: 3px solid var(--saspa-dark);
+            padding: 1.2rem;
+            position: relative;
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 1rem;
+            transition: all 0.3s;
+            animation: fade-in 0.4s ease-out forwards;
+        }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dossier-card:hover {
+            transform: translateY(-3px) scale(1.01); box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 15px rgba(14, 165, 233, 0.1); border-color: var(--saspa-accent);
+        }
+
+        .dossier-photo {
+            width: 80px; height: 100px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative;
+        }
+        .dossier-photo svg { width: 50px; fill: rgba(255,255,255,0.2); }
+        .dossier-photo::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--saspa-accent);
+        }
+
+        .dossier-info { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            gap: 0.3rem;
+            overflow: hidden; 
+        }
+        
+        .agent-name { 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            color: #fff; 
+            text-transform: uppercase; 
+            line-height: 1.1; 
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .dept-tag-wrapper {
+            margin-top: 0.1rem;
+        }
+
+        .dept-tag {
+            background: rgba(14, 165, 233, 0.15); 
+            border: 1px solid var(--saspa-accent); 
+            color: var(--text-tech); 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 0.65rem; 
+            padding: 0.2rem 0.5rem; 
+            letter-spacing: 1px; 
+            display: inline-block;
+            max-width: 100%; 
+            white-space: normal;
+            line-height: 1.3;
+        }
+
+        .agent-rank { 
+            font-size: 0.85rem; 
+            color: var(--text-muted); 
+            min-height: 1rem;
+            margin-top: 0.1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dossier-footer {
+            grid-column: 1 / -1; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            margin-top: 1rem; 
+            padding-top: 0.8rem; 
+            border-top: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .status-active {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--success);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+        .status-active::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--success);
+        }
+
+        .barcode { font-family: 'Libre Barcode 39 Text', cursive; font-size: 2.2rem; color: rgba(255,255,255,0.3); transform: scaleY(0.7); transform-origin: right bottom; line-height: 0.8; }
+
+        .btn-card-action {
+            position: absolute; bottom: 1.2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.3rem 0.6rem; cursor: pointer; transition: 0.2s; opacity: 0;
+        }
+        .dossier-card:hover .btn-card-action { opacity: 1; }
+        
+        .btn-delete {
+            right: 1.2rem; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger);
+        }
+        .btn-delete:hover { background: var(--danger); color: #fff; box-shadow: 0 0 10px var(--danger-glow); }
+
+        .btn-edit {
+            right: 7.8rem; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); color: var(--warning);
+        }
+        .btn-edit:hover { background: var(--warning); color: #fff; box-shadow: 0 0 10px var(--warning-glow); }
+
+        #toast-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.8rem; z-index: 1000; pointer-events: none; }
+        .toast {
+            background: rgba(2, 6, 23, 0.95); border-left: 4px solid var(--saspa-accent); color: #fff; padding: 1rem 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 1rem; animation: slideIn 0.3s ease-out forwards;
+        }
+        .toast.error { border-color: var(--danger); }
+        .toast.remove { border-color: var(--warning); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(50px); } }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 23, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: var(--panel-bg);
+            border: var(--border-tech);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.5), 0 0 20px var(--saspa-glow);
+            border-radius: 4px;
+            padding: 2rem;
+            width: 90%; max-width: 400px;
+            display: none; flex-direction: column; gap: 1rem;
+            animation: fade-in 0.2s ease-out;
+        }
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--saspa-accent);
+            font-size: 1.4rem;
+            text-align: center;
+            letter-spacing: 2px;
+            border-bottom: 1px dashed rgba(14, 165, 233, 0.3);
+            padding-bottom: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .modal-box textarea {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-left: 3px solid var(--saspa-accent);
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 1rem;
+            resize: vertical;
+            outline: none;
+            min-height: 120px;
+        }
+        .modal-box textarea:focus {
+            background: rgba(14, 165, 233, 0.05);
+            border-color: var(--saspa-accent);
+            box-shadow: 0 0 15px var(--saspa-glow);
+        }
+        .mt-1 { margin-top: 0.5rem; }
+
+        @media (max-width: 1000px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+
+    <div class="top-bar">
+        <div><span class="status-blink"></span>SASPA - SECURE CONNECTION BY FLUFFY BARBARA</div>
+        <div>ENCRYPTION: AES-256 | NODE: BOLINGBROKE-PRISON-01</div>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩИЕ МЕНЮ СИСТЕМЫ -->
+    <div id="modalOverlay" class="modal-overlay">
+        
+        <!-- Меню Экспорта -->
+        <div id="modalExportChoice" class="modal-box">
+            <div class="modal-title">ФОРМАТ ЭКСПОРТА</div>
+            <button class="btn-submit" onclick="exportDataFile()">ОТЧЕТ ПО БАЗАМ ДАННЫХ (.TXT)</button>
+            <button class="btn-submit" onclick="showExportCode()">КОД</button>
+            <button class="btn-action mt-1" onclick="closeModals()">ОТМЕНА</button>
+        </div>
+
+        <!-- Меню Импорта -->
+        <div id="modalImportChoice" class="modal-box">
+            <div class="modal-title">ФОРМАТ ИМПОРТА</div>
+            <button class="btn-submit" onclick="document.getElementById('importFileInput').click(); closeModals()">ЗАГРУЗИТЬ ФАЙЛ (.TXT)</button>
+            <button class="btn-submit" onclick="showImportCode()">ВВЕСТИ КОД</button>
+            <button class="btn-action mt-1" onclick="closeModals()">ОТМЕНА</button>
+        </div>
+
+        <!-- Окно для работы с кодом -->
+        <div id="modalCode" class="modal-box">
+            <div class="modal-title" id="codeModalTitle">МАШИННЫЙ КОД</div>
+            <textarea id="codeTextArea" rows="5" placeholder="Вставьте код сюда..."></textarea>
+            <button class="btn-submit" id="codeModalBtn">ПРИМЕНИТЬ</button>
+            <button class="btn-action mt-1" onclick="closeModals()">ЗАКРЫТЬ</button>
+        </div>
+
+    </div>
+
+    <div class="container">
+        <aside class="tech-panel">
+            <div class="brand">
+                <h1>SASPA</h1>
+                <p>DOSSIER MANAGEMENT</p>
+            </div>
+
+            <form id="rosterForm">
+                <div class="form-group">
+                    <label>Имя Фамилия Сотрудника</label>
+                    <input type="text" id="agentName" placeholder="Например: Alex Carter" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Назначение (Основа / Отдел)</label>
+                    <select id="department" required>
+                        <option value="" disabled selected>-- ВЫБЕРИТЕ ИЗ СПИСКА --</option>
+                        
+                        <optgroup label="Офис Начальника тюрьмы">
+                            <option value="Начальник Тюрьмы">Начальник Тюрьмы</option>
+                            <option value="Заместитель Начальника Тюрьмы">Заместитель Начальника Тюрьмы</option>
+                            <option value="Инспектор">Инспектор</option>
+                            <option value="MEDIA">MEDIA</option>
+                            <option value="Резервный состав">Резервный состав</option>
+                        </optgroup>
+
+                        <optgroup label="Старший состав">
+                            <option value="Начальник отряда">Начальник отряда</option>
+                            <option value="Заместитель Начальника отряда">Заместитель Начальника отряда</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Примечание / Должность (Отдел)</label>
+                    <input type="text" id="rank" placeholder="Head CRUSH, D. Head SPD, A, HRD..." autocomplete="off">
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn-submit">Внести в базу</button>
+                <button type="button" id="btnCancelEdit" class="btn-submit btn-cancel">Отменить редактирование</button>
+
+                <!-- Скрытый инпут для импорта файла -->
+                <input type="file" id="importFileInput" accept=".txt" style="display: none;">
+
+                <div class="data-controls">
+                    <button type="button" class="btn-action" onclick="openModal('modalExportChoice')">Экспорт базы</button>
+                    <button type="button" class="btn-action" onclick="openModal('modalImportChoice')">Импорт базы</button>
+                </div>
+            </form>
+        </aside>
+
+        <main>
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Поиск сотрудника (Имя, Отдел, Должность)..." autocomplete="off">
+                </div>
+                <div class="stats-box">
+                    <div class="stat">
+                        <div class="stat-val" id="totalAgents">0</div>
+                        <div class="stat-lbl">Сотрудников</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-val" id="activeDepts">0</div>
+                        <div class="stat-lbl">Занято должностей</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roster-vacancies">
+                <div class="vacancy-title">АНАЛИТИКА КВОТ / ВАКАНСИИ РУКОВОДСТВА SASPA</div>
+                
+                <div class="vacancy-summary">
+                    ОБЩИЙ РЕЗЕРВ СВОБОДНЫХ КВОТ: 
+                    <span id="totalFreeSum">0</span>
+                </div>
+
+                <div class="vacancy-grid" id="vacancyGrid"></div>
+            </div>
+
+            <div id="rosterGrid"></div>
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        const form = document.getElementById('rosterForm');
+        const searchInput = document.getElementById('searchInput');
+        const rosterGrid = document.getElementById('rosterGrid');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const btnCancelEdit = document.getElementById('btnCancelEdit');
+        const importFileInput = document.getElementById('importFileInput');
+        
+        let roster = JSON.parse(localStorage.getItem('saspaDatabaseV1')) || [];
+        let editingAgentId = null; 
+
+        const roleWeights = {
+            'Начальник Тюрьмы': 1,
+            'Заместитель Начальника Тюрьмы': 2,
+            'Инспектор': 3,
+            'MEDIA': 4,
+            
+            'Начальник отряда': 5,
+            'Заместитель Начальника отряда': 6,
+            'Резервный состав': 7,
+            
+            'A': 10, 'SPD': 11, 'HRD': 12, 'ED': 13, 'CRUSH': 14, 'USMS': 15,
+            
+            'Free Agent': 40
+        };
+
+        const MAX_DEP_WARDEN = 3;
+        const MAX_INSPECTOR = 7;
+        const MAX_HEAD = 1;
+        const MAX_D_HEAD = 3; 
+        const saspaDepts = ['A', 'SPD', 'HRD', 'ED', 'CRUSH', 'USMS'];
+
+        function migrateLSSDToSASPA(data) {
+            const lssdRoleMap = {
+                'Sheriff': 'Начальник Тюрьмы',
+                'Deputy Sheriff': 'Заместитель Начальника Тюрьмы',
+                'Assistant': 'Инспектор',
+                'Старший состав': 'Начальник отряда',
+                '10 ранг': 'Начальник отряда',
+                '9 ранг': 'Заместитель Начальника отряда'
+            };
+
+            const lssdDeptMap = {
+                'IAG': 'HRD',
+                'SAI': 'A',
+                'SPD': 'SPD',
+                'SRT': 'CRUSH',
+                'BAFG': 'ED',
+                'HFP': 'USMS',
+                'MRG': 'USMS'
+            };
+
+            return data.map(agent => {
+                let cleanDept = (agent.department || '').replace(/\[\d+\]/g, '').trim();
+                let newDept = lssdRoleMap[cleanDept] || cleanDept;
+                let newRank = agent.rank || '';
+
+                Object.keys(lssdDeptMap).forEach(oldD => {
+                    const regex = new RegExp(`\\b${oldD}\\b`, 'gi');
+                    newRank = newRank.replace(regex, lssdDeptMap[oldD]);
+                });
+
+                return {
+                    ...agent,
+                    department: newDept,
+                    rank: newRank
+                };
+            });
+        }
+
+        function extractDepartment(rankStr) {
+            if (!rankStr) return 'БЕЗ ОТДЕЛА';
+            const r = rankStr.trim();
+            const rLower = r.toLowerCase();
+            
+            if (rLower.includes('free') || rLower.includes('свободен')) return 'FREE AGENT';
+            
+            for (let d of saspaDepts) {
+                const regex = new RegExp(`\\b${d}\\b`, 'i');
+                if (regex.test(r)) {
+                    return d;
+                }
+            }
+            return 'БЕЗ ОТДЕЛА';
+        }
+
+        function getRankWeight(rankStr) {
+            if (!rankStr) return 100;
+            const r = rankStr.toLowerCase();
+            if (r.includes('head') && !r.includes('d. head') && !r.includes('d.head') && !r.includes('зам')) return 1;
+            if (r.includes('d. head') || r.includes('d.head') || r.includes('зам')) return 2;
+            if (r.includes('cur') || r.includes('курат')) return 3;
+            if (r.includes('inst') || r.includes('инструкт')) return 4;
+            return 50; 
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'success' ? '✓' : type === 'error' ? '✖' : '⚠';
+            toast.innerHTML = `<span style="font-size: 1.2rem">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function saveData() {
+            localStorage.setItem('saspaDatabaseV1', JSON.stringify(roster));
+        }
+
+        /* --- ЛОГИКА ВСПЛЫВАЮЩИХ ОКОН (MODALS) --- */
+        window.openModal = function(modalId) {
+            document.getElementById('modalOverlay').style.display = 'flex';
+            document.querySelectorAll('.modal-box').forEach(b => b.style.display = 'none');
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        window.closeModals = function() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        window.showExportCode = function() {
+            if (roster.length === 0) {
+                closeModals();
+                showToast('База пуста! Нечего экспортировать.', 'error');
+                return;
+            }
+            openModal('modalCode');
+            document.getElementById('codeModalTitle').textContent = 'СКОПИРУЙТЕ КОД';
+            
+            const dataStr = JSON.stringify(roster);
+            const encodedData = btoa(unescape(encodeURIComponent(dataStr)));
+            
+            const txtArea = document.getElementById('codeTextArea');
+            txtArea.value = encodedData;
+            txtArea.readOnly = true;
+            
+            const btn = document.getElementById('codeModalBtn');
+            btn.textContent = 'СКОПИРОВАТЬ КОД';
+            btn.onclick = function() {
+                txtArea.select();
+                document.execCommand('copy');
+                showToast('Код скопирован в буфер обмена!', 'success');
+                closeModals();
+            };
+        }
+
+        window.showImportCode = function() {
+            openModal('modalCode');
+            document.getElementById('codeModalTitle').textContent = 'ВСТАВЬТЕ КОД';
+            
+            const txtArea = document.getElementById('codeTextArea');
+            txtArea.value = '';
+            txtArea.readOnly = false;
+            
+            const btn = document.getElementById('codeModalBtn');
+            btn.textContent = 'ИМПОРТИРОВАТЬ БАЗУ';
+            btn.onclick = function() {
+                const code = txtArea.value.trim();
+                if (!code) {
+                    showToast('Код не введен!', 'error');
+                    return;
+                }
+                processImport(code);
+                closeModals();
+            };
+        }
+
+        /* --- ЛОГИКА ЭКСПОРТА .TXT --- */
+        window.exportDataFile = function() {
+            if (roster.length === 0) {
+                closeModals();
+                showToast('База пуста! Нечего экспортировать.', 'error');
+                return;
+            }
+
+            let counts = { 'Заместитель Начальника Тюрьмы': 0, 'Инспектор': 0 };
+            saspaDepts.forEach(d => { counts[`Head ${d}`] = 0; counts[`D. Head ${d}`] = 0; });
+
+            roster.forEach(agent => {
+                const cleanDept = agent.department.replace(/\[\d+\]/g, '').trim();
+                if (cleanDept === 'Заместитель Начальника Тюрьмы') counts['Заместитель Начальника Тюрьмы']++;
+                if (cleanDept === 'Инспектор') counts['Инспектор']++;
+                
+                const extDept = extractDepartment(agent.rank);
+                if (saspaDepts.includes(extDept)) {
+                    const r = (agent.rank || '').toLowerCase();
+                    if (r.includes('head') && !r.includes('d. head') && !r.includes('d.head') && !r.includes('зам')) counts[`Head ${extDept}`]++;
+                    else if (r.includes('d. head') || r.includes('d.head') || r.includes('зам')) counts[`D. Head ${extDept}`]++;
+                }
+            });
+
+            let txt = `==========================================================\n`;
+            txt += ` SASPA DOSSIER MANAGEMENT - SYSTEM REPORT BY FLUFFY BARBARA\n`;
+            txt += `==========================================================\n`;
+            txt += ` ДАТА ФОРМИРОВАНИЯ: ${new Date().toLocaleString('ru-RU')}\n`;
+            txt += ` ВСЕГО СОТРУДНИКОВ В БАЗЕ: ${roster.length}\n\n`;
+
+            txt += `--- АНАЛИТИКА КВОТ / СВОБОДНЫЕ МЕСТА ---\n`;
+            const formatQuota = (curr, max) => curr >= max ? `[МЕСТ НЕТ]` : `[Свободно: ${max - curr}]`;
+            
+            txt += ` Зам. Начальника: ${counts['Заместитель Начальника Тюрьмы']} / ${MAX_DEP_WARDEN}  ${formatQuota(counts['Заместитель Начальника Тюрьмы'], MAX_DEP_WARDEN)}\n`;
+            txt += ` Инспектор:       ${counts['Инспектор']} / ${MAX_INSPECTOR}  ${formatQuota(counts['Инспектор'], MAX_INSPECTOR)}\n\n`;
+
+            saspaDepts.forEach(d => {
+                txt += ` Head ${d}:       ${counts[`Head ${d}`]} / ${MAX_HEAD}  ${formatQuota(counts[`Head ${d}`], MAX_HEAD)}\n`;
+                txt += ` D. Head ${d}:    ${counts[`D. Head ${d}`]} / ${MAX_D_HEAD}  ${formatQuota(counts[`D. Head ${d}`], MAX_D_HEAD)}\n`;
+                txt += `-----------------------------------------\n`;
+            });
+
+            txt += `\n--- ДЕЙСТВУЮЩИЙ ЛИЧНЫЙ СОСТАВ ---\n`;
+            
+            const groupedAgents = {};
+            roster.forEach(agent => {
+                const role = agent.department.replace(/\[\d+\]/g, '').trim();
+                if (!groupedAgents[role]) groupedAgents[role] = [];
+                groupedAgents[role].push(agent);
+            });
+
+            const sortedRoles = Object.keys(groupedAgents).sort((a, b) => (roleWeights[a] || 100) - (roleWeights[b] || 100));
+
+            sortedRoles.forEach(roleName => {
+                txt += `\n>> ${roleName.toUpperCase()} <<\n`;
+
+                const agentsInRole = groupedAgents[roleName];
+                const subDepts = {};
+                agentsInRole.forEach(agent => {
+                    const extDept = extractDepartment(agent.rank);
+                    if(!subDepts[extDept]) subDepts[extDept] = [];
+                    subDepts[extDept].push(agent);
+                });
+
+                const sortedDepts = Object.keys(subDepts).sort((a, b) => {
+                    if (a === 'БЕЗ ОТДЕЛА') return 1;
+                    if (b === 'БЕЗ ОТДЕЛА') return -1;
+                    if (a === 'FREE AGENT') return 1;
+                    if (b === 'FREE AGENT') return -1;
+                    return a.localeCompare(b);
+                });
+
+                sortedDepts.forEach(deptName => {
+                    const deptAgents = subDepts[deptName];
+                    deptAgents.sort((a, b) => {
+                        const weightA = getRankWeight(a.rank);
+                        const weightB = getRankWeight(b.rank);
+                        if (weightA !== weightB) return weightA - weightB;
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    if (deptName !== 'БЕЗ ОТДЕЛА') {
+                        txt += `  [ ОТДЕЛ: ${deptName} ]\n`;
+                    }
+
+                    deptAgents.forEach(agent => {
+                        let rankStr = agent.rank ? ` (${agent.rank})` : ``;
+                        txt += `    - ${agent.name}${rankStr}\n`;
+                    });
+                    txt += `\n`;
+                });
+            });
+
+            const dataStr = JSON.stringify(roster);
+            const encodedData = btoa(unescape(encodeURIComponent(dataStr)));
+
+            txt += `\n\n`;
+            txt += `=======================================================\n`;
+            txt += `[ SYSTEM DATA BLOCK - DO NOT MODIFY BY FLUFFY BARBARA ]\n`;
+            txt += `=======================================================\n`;
+            txt += encodedData;
+
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.download = `SASPA_Roster_${dateStr}.txt`;
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            closeModals();
+            showToast('Отчет и база сохранены в файл!', 'success');
+        }
+
+        /* --- ЛОГИКА ИМПОРТА ФАЙЛОВ .TXT --- */
+        importFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                let extractedCode = "";
+
+                const newSeparator = "[ SYSTEM DATA BLOCK - DO NOT MODIFY BY FLUFFY BARBARA ]";
+                const oldSeparator = "[ SYSTEM DATA BLOCK - DO NOT MODIFY ]";
+                
+                if (content.includes(newSeparator)) {
+                    extractedCode = content.split(newSeparator)[1].trim();
+                } else if (content.includes(oldSeparator)) {
+                    extractedCode = content.split(oldSeparator)[1].trim();
+                } else {
+                    extractedCode = content.trim();
+                }
+
+                processImport(extractedCode, true);
+                e.target.value = ''; 
+            };
+            reader.readAsText(file);
+        });
+
+        function processImport(base64code, fromFile = false) {
+            try {
+                const decodedData = decodeURIComponent(escape(atob(base64code)));
+                let parsedData = JSON.parse(decodedData);
+                
+                if (Array.isArray(parsedData)) {
+                    roster = migrateLSSDToSASPA(parsedData);
+                    saveData();
+                    resetForm();
+                    renderRoster();
+                    showToast(fromFile ? 'База SASPA успешно загружена из файла!' : 'База SASPA успешно обновлена!', 'success');
+                } else {
+                    throw new Error("Неверный формат данных");
+                }
+            } catch (err) {
+                showToast('Ошибка! Код или файл поврежден.', 'error');
+            }
+        }
+
+        /* --- ОТРИСОВКА И АНАЛИТИКА --- */
+        function updateVacancies() {
+            let counts = { 'Заместитель Начальника Тюрьмы': 0, 'Инспектор': 0 };
+            saspaDepts.forEach(d => { counts[`Head ${d}`] = 0; counts[`D. Head ${d}`] = 0; });
+
+            roster.forEach(agent => {
+                const cleanDept = agent.department.replace(/\[\d+\]/g, '').trim();
+                if (cleanDept === 'Заместитель Начальника Тюрьмы') counts['Заместитель Начальника Тюрьмы']++;
+                if (cleanDept === 'Инспектор') counts['Инспектор']++;
+                
+                const extDept = extractDepartment(agent.rank);
+                if (saspaDepts.includes(extDept)) {
+                    const r = (agent.rank || '').toLowerCase();
+                    if (r.includes('head') && !r.includes('d. head') && !r.includes('d.head') && !r.includes('зам')) {
+                        counts[`Head ${extDept}`]++;
+                    } else if (r.includes('d. head') || r.includes('d.head') || r.includes('зам')) {
+                        counts[`D. Head ${extDept}`]++;
+                    }
+                }
+            });
+
+            const grid = document.getElementById('vacancyGrid');
+            grid.innerHTML = '';
+            let globalFreeSpots = 0; 
+
+            const calculateFree = (current, max) => {
+                const free = max - current;
+                return free > 0 ? free : 0;
+            };
+
+            const createCard = (title, current, max) => {
+                const free = max - current;
+                const isFull = free <= 0;
+                
+                const card = document.createElement('div');
+                card.className = `vacancy-card ${isFull ? 'full' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="v-role">${title}</div>
+                    <div class="v-count">Занято: <span style="color:#fff">${current} / ${max}</span></div>
+                    <div class="v-free">${isFull ? '[ МЕСТ НЕТ ]' : '[ ВАКАНТНО: ' + free + ' ]'}</div>
+                `;
+                grid.appendChild(card);
+            };
+
+            globalFreeSpots += calculateFree(counts['Заместитель Начальника Тюрьмы'], MAX_DEP_WARDEN);
+            createCard('Зам. Начальника', counts['Заместитель Начальника Тюрьмы'], MAX_DEP_WARDEN);
+            
+            globalFreeSpots += calculateFree(counts['Инспектор'], MAX_INSPECTOR);
+            createCard('Инспектор', counts['Инспектор'], MAX_INSPECTOR);
+            
+            saspaDepts.forEach(d => {
+                globalFreeSpots += calculateFree(counts[`Head ${d}`], MAX_HEAD);
+                createCard(`Head ${d}`, counts[`Head ${d}`], MAX_HEAD);
+            });
+            
+            saspaDepts.forEach(d => {
+                globalFreeSpots += calculateFree(counts[`D. Head ${d}`], MAX_D_HEAD);
+                createCard(`D. Head ${d}`, counts[`D. Head ${d}`], MAX_D_HEAD);
+            });
+
+            document.getElementById('totalFreeSum').textContent = globalFreeSpots;
+        }
+
+        function renderRoster(filterText = '') {
+            rosterGrid.innerHTML = '';
+            
+            const filteredRoster = roster.filter(agent => {
+                const cleanDept = agent.department.replace(/\[\d+\]/g, '').trim();
+                const searchStr = `${agent.name} ${cleanDept} ${agent.rank}`.toLowerCase();
+                return searchStr.includes(filterText.toLowerCase());
+            });
+
+            document.getElementById('totalAgents').textContent = roster.length;
+            
+            const uniqueRoles = new Set(roster.map(a => a.department.replace(/\[\d+\]/g, '').trim()));
+            document.getElementById('activeDepts').textContent = uniqueRoles.size;
+
+            updateVacancies();
+
+            if (filteredRoster.length === 0) {
+                rosterGrid.innerHTML = `
+                    <div style="text-align: center; color: var(--text-muted); padding: 4rem; font-family: 'JetBrains Mono', monospace; border: 1px dashed rgba(14, 165, 233, 0.2);">
+                        [ БАЗА ДАННЫХ ПУСТА / НЕТ СОВПАДЕНИЙ ]
+                    </div>`;
+                return;
+            }
+
+            const groupedAgents = {};
+            filteredRoster.forEach(agent => {
+                const role = agent.department.replace(/\[\d+\]/g, '').trim();
+                if (!groupedAgents[role]) {
+                    groupedAgents[role] = [];
+                }
+                groupedAgents[role].push(agent);
+            });
+
+            const sortedRoles = Object.keys(groupedAgents).sort((a, b) => {
+                const weightA = roleWeights[a] || 100;
+                const weightB = roleWeights[b] || 100;
+                if (weightA !== weightB) {
+                    return weightA - weightB; 
+                }
+                return a.localeCompare(b); 
+            });
+
+            sortedRoles.forEach(roleName => {
+                const agentsInRole = groupedAgents[roleName];
+                
+                const subDepts = {};
+                agentsInRole.forEach(agent => {
+                    const extDept = extractDepartment(agent.rank);
+                    if(!subDepts[extDept]) subDepts[extDept] = [];
+                    subDepts[extDept].push(agent);
+                });
+
+                const sortedDepts = Object.keys(subDepts).sort((a, b) => {
+                    if (a === 'БЕЗ ОТДЕЛА') return 1;
+                    if (b === 'БЕЗ ОТДЕЛА') return -1;
+                    if (a === 'FREE AGENT') return 1;
+                    if (b === 'FREE AGENT') return -1;
+                    return a.localeCompare(b);
+                });
+
+                const section = document.createElement('div');
+                section.className = 'role-section';
+
+                const title = document.createElement('div');
+                title.className = 'role-title';
+                title.textContent = roleName;
+                section.appendChild(title);
+
+                sortedDepts.forEach(deptName => {
+                    const deptAgents = subDepts[deptName];
+                    
+                    deptAgents.sort((a, b) => {
+                        const weightA = getRankWeight(a.rank);
+                        const weightB = getRankWeight(b.rank);
+                        if (weightA !== weightB) return weightA - weightB;
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    const subSection = document.createElement('div');
+                    subSection.className = 'dept-sub-section';
+                    
+                    if (deptName !== 'БЕЗ ОТДЕЛА') {
+                        const subTitle = document.createElement('div');
+                        subTitle.className = 'dept-sub-title';
+                        subTitle.innerHTML = `<span style="color:var(--text-muted)">[</span> ОТДЕЛ: <span style="color:#fff">${deptName}</span> <span style="color:var(--text-muted)">]</span>`;
+                        subSection.appendChild(subTitle);
+                    } else {
+                        subSection.style.marginTop = "0";
+                    }
+
+                    const roleGridDiv = document.createElement('div');
+                    roleGridDiv.className = 'role-grid';
+
+                    deptAgents.forEach(agent => {
+                        const card = document.createElement('div');
+                        card.className = 'dossier-card';
+                        
+                        const barcodeData = `*${agent.id.toString().slice(-6)}*`;
+                        const displayDept = agent.department.replace(/\[\d+\]/g, '').trim();
+
+                        card.innerHTML = `
+                            <div class="dossier-photo">
+                                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </div>
+                            <div class="dossier-info">
+                                <div class="agent-name" title="${agent.name}">${agent.name}</div>
+                                <div class="dept-tag-wrapper">
+                                    <span class="dept-tag">${displayDept}</span>
+                                </div>
+                                <div class="agent-rank">${agent.rank ? '> ' + agent.rank : ''}</div>
+                            </div>
+                            <div class="dossier-footer">
+                                <div class="status-active">Status: Active</div>
+                                <div class="barcode">${barcodeData}</div>
+                            </div>
+                            <button class="btn-card-action btn-edit" onclick="editAgent(${agent.id})">ИЗМЕНИТЬ</button>
+                            <button class="btn-card-action btn-delete" onclick="revokeAccess(${agent.id})">АННУЛИРОВАТЬ</button>
+                        `;
+                        roleGridDiv.appendChild(card);
+                    });
+                    
+                    subSection.appendChild(roleGridDiv);
+                    section.appendChild(subSection);
+                });
+
+                rosterGrid.appendChild(section);
+            });
+        }
+
+        window.editAgent = function(id) {
+            const agent = roster.find(a => a.id === id);
+            if (!agent) return;
+
+            document.getElementById('agentName').value = agent.name;
+            document.getElementById('department').value = agent.department.replace(/\[\d+\]/g, '').trim();
+            document.getElementById('rank').value = agent.rank;
+
+            editingAgentId = id;
+            
+            btnSubmit.textContent = 'Сохранить изменения';
+            btnSubmit.style.borderColor = 'var(--warning)';
+            btnSubmit.style.color = 'var(--warning)';
+            btnSubmit.style.boxShadow = '0 0 20px var(--warning-glow)';
+            
+            btnCancelEdit.style.display = 'block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('agentName').value = '';
+            document.getElementById('department').value = '';
+            document.getElementById('rank').value = '';
+            editingAgentId = null;
+            
+            btnSubmit.textContent = 'Внести в базу';
+            btnSubmit.style.borderColor = 'var(--saspa-accent)';
+            btnSubmit.style.color = 'var(--saspa-accent)';
+            btnSubmit.style.boxShadow = 'none';
+            
+            btnCancelEdit.style.display = 'none';
+        }
+
+        btnCancelEdit.addEventListener('click', resetForm);
+
+        window.revokeAccess = function(id) {
+            const index = roster.findIndex(a => a.id === id);
+            if(index === -1) return;
+            
+            const agent = roster[index];
+            roster.splice(index, 1);
+            saveData();
+            
+            if(editingAgentId === id) resetForm();
+
+            renderRoster(searchInput.value);
+            showToast(`Доступ аннулирован: ${agent.name}`, 'remove');
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('agentName').value.trim();
+            const department = document.getElementById('department').value.replace(/\[\d+\]/g, '').trim();
+            const rank = document.getElementById('rank').value.trim();
+
+            if (editingAgentId !== null) {
+                if (roster.some(a => a.name.toLowerCase() === name.toLowerCase() && a.id !== editingAgentId)) {
+                    showToast(`Ошибка: Сотрудник [${name}] уже в базе!`, 'error');
+                    return;
+                }
+
+                const agentIndex = roster.findIndex(a => a.id === editingAgentId);
+                if (agentIndex !== -1) {
+                    roster[agentIndex].name = name;
+                    roster[agentIndex].department = department;
+                    roster[agentIndex].rank = rank;
+                    showToast(`Досье обновлено: ${name}`);
+                }
+                resetForm();
+            } else {
+                if (roster.some(a => a.name.toLowerCase() === name.toLowerCase())) {
+                    showToast(`Ошибка: Сотрудник [${name}] уже в базе!`, 'error');
+                    return;
+                }
+
+                const newAgent = { id: Date.now(), name, department, rank };
+                roster.push(newAgent); 
+                showToast(`Досье создано: ${newAgent.name}`);
+                
+                document.getElementById('agentName').value = '';
+                document.getElementById('rank').value = '';
+                document.getElementById('agentName').focus();
+            }
+
+            saveData();
+            renderRoster(searchInput.value);
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            renderRoster(e.target.value);
+        });
+
+        renderRoster();
+    </script>
+</body>
+</html>
