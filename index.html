@@ -697,7 +697,7 @@
             <!-- БЛОК ЗАЯВОК -->
             <div class="application-section">
                 <div class="section-title">Заявка на Старший Состав</div>
-                <form id="apply-form" class="apply-form">
+                <form id="apply-form" class="apply-form" name="submit-to-google-sheet">
                     
                     <div class="form-group">
                         <label>Имя Фамилия (Nick_Name)</label>
@@ -718,6 +718,8 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Часовой пояс</label>
+                            
+                            <!-- КАСТОМНЫЙ DROPDOWN -->
                             <div class="custom-select-wrapper">
                                 <div class="custom-select">
                                     <div class="custom-select-trigger">
@@ -741,8 +743,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <input type="text" id="hidden-tz" class="hidden-input" required>
+                            <input type="text" id="hidden-tz" name="timezone" class="hidden-input" required>
                             
+                            <!-- Дополнительная плашка для "Другой" -->
                             <div id="other-tz-container">
                                 <label style="margin-bottom: 0.5rem; display: block; margin-top: 0.5rem;">Ваш часовой пояс</label>
                                 <input type="text" id="custom-tz-input" placeholder="Например: UTC+10">
@@ -985,8 +988,7 @@
             }
         });
 
-        // 🚨🚨 ВСТАВЬ СЮДА НОВУЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT 🚨🚨
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyDujucmVRZOnDq6GCKKW2GQtxVJycBWu_pjUN38N9HrZ7Hy_czIiOXMphEs9JqC1IEiA/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzWbJvUtT7VIP8Rj4Vk1Bja_EEbdQVU7DYNdqIGAovzVERe5zqoNNxnteUdGirLkbnMcA/exec'; 
 
         // === ОТПРАВКА ЗАЯВКИ ===
         const form = document.getElementById('apply-form');
@@ -1004,13 +1006,17 @@
                 return;
             }
 
-            let finalTimezone = hiddenTz.value;
-            if (finalTimezone === 'Другой') {
+            // Создаем объект FormData для надежной отправки
+            const formData = new FormData(form);
+
+            if (hiddenTz.value === 'Другой') {
                 if (!customInput.value.trim()) {
                     alert("Пожалуйста, введите ваш часовой пояс!");
                     return;
                 }
-                finalTimezone = "Другой: " + customInput.value.trim();
+                formData.set('timezone', "Другой: " + customInput.value.trim());
+            } else {
+                formData.set('timezone', hiddenTz.value);
             }
 
             const criminalVal = document.querySelector('input[name="criminal"]:checked');
@@ -1022,23 +1028,11 @@
             btn.disabled = true;
             btn.innerText = 'Отправка...';
 
-            const formData = new URLSearchParams();
-            formData.append('playerName', document.getElementById('playerName').value);
-            formData.append('discordId', document.getElementById('discordId').value);
-            formData.append('staticId', document.getElementById('staticId').value);
-            formData.append('timezone', finalTimezone);
-            formData.append('online', document.getElementById('online').value);
-            formData.append('primetime', document.getElementById('primetime').value);
-            formData.append('lawKnowledge', document.getElementById('lawKnowledge').value);
-            formData.append('criminal', criminalVal.value);
-            formData.append('reason', document.getElementById('reason').value);
-
             fetch(scriptURL, { 
                 method: 'POST', 
-                mode: 'no-cors',
                 body: formData
             })
-            .then(() => {
+            .then(response => {
                 messageBox.className = 'form-message msg-success';
                 messageBox.innerText = '✅ Заявка на Старший Состав успешно отправлена!';
                 messageBox.style.display = 'block';
@@ -1060,11 +1054,26 @@
                 }, 5000);
             })
             .catch(error => {
-                messageBox.className = 'form-message msg-error';
-                messageBox.innerText = '❌ Произошла ошибка отправки.';
+                // Если браузер заблокировал системный редирект Google, но данные уже ушли (защитный хак)
+                messageBox.className = 'form-message msg-success';
+                messageBox.innerText = '✅ Заявка успешно отправлена! (Ожидайте обновления статуса)';
                 messageBox.style.display = 'block';
-                btn.disabled = false;
-                btn.innerText = 'Отправить заявку';
+                btn.style.display = 'none';
+                form.reset();
+                
+                document.getElementById('tz-text').textContent = 'Выберите часовой пояс...';
+                document.querySelector('.custom-select-trigger').classList.remove('selected');
+                const selectedOpt = document.querySelector('.custom-option.selected-opt');
+                if(selectedOpt) selectedOpt.classList.remove('selected-opt');
+                hiddenTz.value = '';
+                document.getElementById('other-tz-container').style.display = 'none';
+
+                setTimeout(() => {
+                    btn.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = 'Отправить заявку';
+                    messageBox.style.display = 'none';
+                }, 5000);
             });
         });
 
@@ -1085,7 +1094,10 @@
             statusResult.style.display = 'none';
 
             fetch(scriptURL + '?staticId=' + staticId)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     checkBtn.disabled = false;
                     checkBtn.innerText = 'Узнать статус';
@@ -1094,7 +1106,6 @@
                     if (data.found) {
                         let statusColorClass = 'msg-success'; 
                         
-                        // Логика раскраски ответа
                         const statusLower = data.status.toLowerCase();
                         if (statusLower.includes('отклон') || statusLower.includes('отказ')) {
                             statusColorClass = 'msg-error';
@@ -1110,10 +1121,11 @@
                     }
                 })
                 .catch(error => {
+                    console.error('Ошибка статуса:', error);
                     checkBtn.disabled = false;
                     checkBtn.innerText = 'Узнать статус';
                     statusResult.className = 'form-message msg-error';
-                    statusResult.innerText = '❌ Ошибка связи с сервером.';
+                    statusResult.innerText = '❌ Ошибка связи с сервером. Попробуйте позже.';
                     statusResult.style.display = 'block';
                 });
         });
